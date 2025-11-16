@@ -95,26 +95,70 @@ export const logout = (req, res) => {
 //Send verification OTP to user email
 export const sendVerificationOtp = async (req, res) => {
     try {
-        const {userId, email} = req.body;
+        const userId = req.body.userId;  // added safety
         const user = await User.findById(userId);
-        if(user.isAccountVerified){
-            return res.status(400).json({success:false, message:"Account is already verified"});
+
+        if (!user) {
+            return res.status(404).json({ success: false, message: "User not found" });
         }
+
+        if (user.isAccountVerified) {
+            return res.status(400).json({ success: false, message: "Account already verified" });
+        }
+
         const otp = Math.floor(100000 + Math.random() * 900000).toString();
+
         user.verifyOtp = otp;
-        user.otpExpiry = Date.now() + 5 * 60 * 1000; // OTP valid for 5 minutes
+        user.otpExpiry = Date.now() + 5 * 60 * 1000;
         await user.save();
 
-        const verificationMail = {
+        await transporter.sendMail({
             from: process.env.SENDER_EMAIL,
-            to: email,
-            subject: "CodeSeed : Account Verification OTP",
-            text: `Your OTP for account verification is: ${otp}. It is valid for 10 minutes.`,
-        };
-        await transporter.sendMail(verificationMail);
-        return res.json({success:true, message:"Verification OTP sent to email"});
+            to: user.email,
+            subject: "CodeSeed: Account Verification OTP",
+            text: `Your OTP is: ${otp}. Valid for 5 minutes.`,
+        });
+
+        return res.json({ success: true, message: "OTP sent" });
 
     } catch (error) {
-        
+        console.error(error);
+        return res.status(500).json({ success: false, message: "Server error" });
+    }
+};
+
+
+export const verifyEmail = async (req, res) => {
+    const { userId, otp } = req.body;
+
+    if (!userId || !otp) {
+        return res.status(400).json({ success: false, message: "UserId and OTP are required" });
+    }
+
+    try {
+        const user = await User.findById(userId);
+        if (!user) {
+            return res.status(404).json({ success: false, message: "User not found" });
+        }
+
+        if(user.verifyOtp===''|| user.verifyOtp!==otp){
+            return res.status(400).json({ success: false, message: "Invalid OTP" });
+        }
+
+        if (Date.now() > user.verifyOtpExpiryAt) {
+            return res.status(400).json({ success: false, message: "OTP expired" });
+        }
+
+        // Success
+        user.isAccountVerified = true;
+        user.verifyOtp = '';
+        user.otpExpiry = 0;
+        await user.save();
+
+        return res.json({ success: true, message: "Email verified successfully" });
+
+    } catch (error) {
+        console.error("Error during email verification:", error);
+        return res.status(500).json({ success: false, message: "Server error" });
     }
 };
