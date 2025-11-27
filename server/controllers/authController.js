@@ -109,7 +109,7 @@ export const sendVerificationOtp = async (req, res) => {
         const otp = Math.floor(100000 + Math.random() * 900000).toString();
 
         user.verifyOtp = otp;
-        user.otpExpiry = Date.now() + 5 * 60 * 1000;
+        user.otpExpiry = Date.now() + 10 * 60 * 1000;
         await user.save();
 
         await transporter.sendMail({
@@ -172,3 +172,35 @@ export const isAuthenticated = async (req, res) => {
         return res.status(500).json({ success: false, message: "Server error" });
     }
 }
+
+// Send reset password OTP to user email
+export const sendResetPasswordOtp = async (req, res) => {
+    // Implementation for sending reset password OTP
+    const { email } = req.body;
+    if (!email) {
+        return res.status(400).json({ success: false, message: "Email is required" });
+    }
+    try {
+        const user = await User.findOne({ email });
+        if (!user) {
+            return res.status(404).json({ success: false, message: "User not found" });
+        }   
+        const otp = Math.floor(100000 + Math.random() * 900000).toString();
+
+        user.resetOtp = otp;
+        user.resetOtpExpiry = Date.now() + 10 * 60 * 1000;
+        await user.save();
+
+        await transporter.sendMail({
+            from: process.env.SENDER_EMAIL,
+            to: user.email,
+            subject: "CodeSeed: Password Reset OTP",
+            text: `Your password reset OTP is: ${otp}. Valid for 10 minutes.`,
+        });
+        return res.json({ success: true, message: "Password reset OTP sent" });
+    } catch (error) {
+        console.error("Error sending reset password OTP:", error);
+        return res.status(500).json({ success: false, message: "Server error" });
+    }
+};
+
