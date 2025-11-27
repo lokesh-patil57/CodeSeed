@@ -13,8 +13,12 @@ const userAuth = async (req, res, next) => {
   try {
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
 
-    req.body = req.body || {};   // <---- FIX
+    req.body = req.body || {};
     req.body.userId = decoded.id;
+
+    // also set a top-level property for easier access in controllers
+    req.userId = decoded.id;
+    req.user = { id: decoded.id };
 
     next();
   } catch (err) {

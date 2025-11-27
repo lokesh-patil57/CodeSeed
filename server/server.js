@@ -4,6 +4,7 @@ import 'dotenv/config';
 import cookieParser from "cookie-parser"; 
 import connectDB from "./config/db.js";
 import authRoutes from "./routes/authRoutes.js";
+import userRouter from "./routes/userRoutes.js";
 
 const app = express();
 const port = process.env.PORT || 3000;
@@ -21,6 +22,9 @@ app.get("/", (req, res) => {
 });
 
 app.use("/api/auth", authRoutes);
+app.use("/api/user", userRouter
+  
+);
 
 app.listen(port, () => {
   console.log(`Server is running on port ${port}`);
