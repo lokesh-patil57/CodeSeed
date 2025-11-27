@@ -127,7 +127,7 @@ export const sendVerificationOtp = async (req, res) => {
     }
 };
 
-
+//Verify user email with OTP
 export const verifyEmail = async (req, res) => {
     const { userId, otp } = req.body;
 
@@ -162,3 +162,13 @@ export const verifyEmail = async (req, res) => {
         return res.status(500).json({ success: false, message: "Server error" });
     }
 };
+
+// Check if user is authenticated
+export const isAuthenticated = async (req, res) => {
+    try {
+    return res.json({ success: true, message: "User is authenticated", user: req.user });
+    } catch (error) {
+        console.error("Error checking authentication:", error);
+        return res.status(500).json({ success: false, message: "Server error" });
+    }
+}
