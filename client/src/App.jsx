@@ -1,15 +1,19 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
+import React from "react";
+import { Routes, Route } from "react-router-dom";
+import EmailVerify from "./pages/EmailVerify";
+import ResetPassword from "./pages/ResetPassword";
+import Login from "./pages/Login"; 
 
 function App() {
-  const [count, setCount] = useState(0)
-
   return (
     <>
-       
+      <Routes>
+        <Route path="/" element={<Login />} />
+        <Route path="/email-verify" element={<EmailVerify />} />
+        <Route path="/reset-password" element={<ResetPassword />} />
+      </Routes>
     </>
-  )
+  );
 }
 
-export default App
+export default App;
