@@ -1,0 +1,89 @@
+import React from "react";
+import { Sun, Moon, Settings, User, Info, ArrowRight } from "lucide-react";
+
+export default function NavBar({ isDark, toggleTheme, focusEmail }) {
+  // shared button classes with theme variants (now driven by props)
+  const btnBase = "p-2 rounded-lg transition-colors duration-200";
+  const btnHover = isDark ? "hover:bg-white/5" : "hover:bg-black/5";
+  const btnText = isDark ? "text-gray-300" : "text-gray-700";
+
+  return (
+    // full-width header with glass-morphism + transparent backgrounds for both themes
+    <header
+      className={`sticky top-0 z-50 w-full backdrop-blur-md transition-colors duration-300
+        ${
+          isDark
+            ? "bg-black/60 border-b border-neutral-800/50 text-white"
+            : "bg-white/20 border-b border-neutral-200/30 text-gray-900"
+        }`}
+    >
+      <div className="ml-5 mx-auto px-4 sm:px-6 lg:px-8">
+        <nav>
+          <div className="flex items-center justify-between h-16">
+            {/* Left side - Logo */}
+            <div className="flex items-center ">
+              <div className=" w-10">
+                <img src="./images/logo.png" alt="" />
+              </div>
+              <div className=" w-40">
+                <img src="./images/namelogo.png" alt="" />
+              </div>
+            </div>
+
+            {/* Right side - Icons */}
+            <div className="flex items-center space-x-2">
+              {/* quick action button that focuses email on the login page */}
+              
+
+              <button
+                className={`${btnBase} ${btnHover} ${btnText}`}
+                aria-label="About"
+                title="About"
+              >
+                <Info size={20} />
+              </button>
+
+              <button
+                onClick={toggleTheme}
+                className={`${btnBase} ${btnHover} ${btnText}`}
+                aria-label="Toggle theme"
+                title={isDark ? "Switch to light" : "Switch to dark"}
+              >
+                {isDark ? <Sun size={20} /> : <Moon size={20} />}
+              </button>
+
+              <button
+                className={`${btnBase} ${btnHover} ${btnText}`}
+                aria-label="Settings"
+                title="Settings"
+              >
+                <Settings size={20} />
+              </button>
+
+              <button
+                className={`${btnBase} ${btnHover} ${btnText}`}
+                aria-label="User profile"
+                title="Profile"
+              >
+                <User size={20} />
+              </button>
+              <button
+                onClick={focusEmail}
+                className={`ml-2 px-3 py-1 rounded-full flex items-center gap-2 text-sm border ${
+                  isDark
+                    ? "border-white text-white bg-black"
+                    : "border-black text-black bg-white/0"
+                }`}
+                aria-label="Start with email"
+                title="Start with email"
+              >
+                <span>Try this</span>
+                <ArrowRight size={16} />
+              </button>
+            </div>
+          </div>
+        </nav>
+      </div>
+    </header>
+  );
+}
