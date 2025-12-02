@@ -44,9 +44,10 @@ export default function LoginPreview() {
             <p className={`${isDark ? "text-neutral-400" : "text-neutral-600"} mb-8`}>The AI for problem solvers</p>
 
             <div
-              className={`${
-                isDark ? "bg-gray-900 border border-neutral-800" : "bg-white border border-neutral-200"
-              } rounded-2xl p-8 w-4/5 relative shadow-xl`}
+              className={`boxx rounded-2xl p-8 w-4/5 relative shadow-xl ${
+                isDark ? "border border-neutral-800" : "border border-neutral-200"
+              }`}
+              style={isDark ? { backgroundColor: "#141413" } : undefined}
             >
               {/* Success overlay */}
               {showSuccess && (
@@ -336,15 +337,14 @@ export default function LoginPreview() {
           className={`${isDark ? "text-gray-300" : "text-gray-700"} space-y-8`}
         >
           <h1
-            className={`text-4xl font-bold ${
+            className={`text-4xl text-center font-normal ${
               isDark ? "text-white" : "text-gray-900"
             }`}
           >
-            Welcome to CodeSeed
+            Meet CodeSeed
           </h1>
-          <p className="text-lg">
-            Scroll down to see the sticky navbar in action. The navbar stays at
-            the top of the page as you scroll.
+          <p className="text-xl text-center text-gray-500">
+            CodeSeed is a next generation AI assistant built by Anthropic and trained to be safe, <br /> accurate, and secure to help you do your best work.
           </p>
           {[...Array(6)].map((_, i) => (
             <div
