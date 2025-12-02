@@ -45,7 +45,7 @@ export default function LoginPreview() {
 
             <div
               className={`${
-                isDark ? "bg-black border border-neutral-800" : "bg-white border border-neutral-200"
+                isDark ? "bg-gray-900 border border-neutral-800" : "bg-white border border-neutral-200"
               } rounded-2xl p-8 w-4/5 relative shadow-xl`}
             >
               {/* Success overlay */}
@@ -74,7 +74,13 @@ export default function LoginPreview() {
               )}
 
               {/* Google button placeholder */}
-              <button className="w-full flex items-center justify-center gap-3 bg-white text-neutral-900 py-3 px-6 rounded-lg font-medium hover:bg-neutral-100 transition-colors mb-4">
+              <button
+                className={`w-full flex items-center justify-center gap-3 py-3 px-6 rounded-lg font-medium transition-colors mb-4 ${
+                  isDark
+                    ? "bg-white text-neutral-900 hover:bg-neutral-100"
+                    : "bg-gray-700 text-white hover:bg-gray-800"
+                }`}
+              >
                 <svg className="w-5 h-5" viewBox="0 0 24 24">
                   <path
                     fill="#4285F4"
