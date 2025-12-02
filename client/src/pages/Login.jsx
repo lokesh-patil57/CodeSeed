@@ -1,4 +1,4 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import NavBar from "../components/Navbar";
 
 export default function LoginPreview() {
@@ -13,6 +13,8 @@ export default function LoginPreview() {
   const [password, setPassword] = useState("");
   const [isLoggingIn, setIsLoggingIn] = useState(false);
   const [isDark, setIsDark] = useState(true);
+  const [openSection, setOpenSection] = useState("create"); // default opened: Create with CodeSeed
+  const [showVideoControls, setShowVideoControls] = useState(false);
 
   const toggleTheme = () => setIsDark((prev) => !prev);
 
@@ -29,23 +31,78 @@ export default function LoginPreview() {
     });
   };
 
+  const toggleVideoControls = (e) => {
+    // prevent bubbling so clicking the video only toggles controls
+    e.stopPropagation();
+    setShowVideoControls((s) => !s);
+  };
+
+  // simple collapsible that animates height smoothly
+  function Collapsible({ isOpen, children }) {
+    const innerRef = useRef(null);
+    const [maxHeight, setMaxHeight] = useState("0px");
+
+    useEffect(() => {
+      if (!innerRef.current) return;
+      // when open, set to scrollHeight so it animates to fit content; when closed set 0
+      // use the measured scrollHeight to animate max-height; timing tuned to 500ms for smoother open
+      setMaxHeight(isOpen ? `${innerRef.current.scrollHeight}px` : "0px");
+    }, [isOpen, children]);
+
+    return (
+      <div
+        style={{
+          maxHeight,
+          overflow: "hidden",
+          transition: "max-height 500ms cubic-bezier(.2,.8,.2,1)",
+        }}
+      >
+        <div ref={innerRef} className="pt-2">
+          {children}
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div
-      className={`${isDark ? "bg-black text-white" : "bg-white text-gray-900"} min-h-screen transition-colors duration-300`}
+      className={`${
+        isDark ? "bg-black text-white" : "bg-white text-gray-900"
+      } min-h-screen transition-colors duration-300`}
     >
-      <NavBar isDark={isDark} toggleTheme={toggleTheme} focusEmail={focusEmail} />
+      <NavBar
+        isDark={isDark}
+        toggleTheme={toggleTheme}
+        focusEmail={focusEmail}
+      />
 
       <div className={`flex min-h-screen w-full`}>
-        <div className={`flex-1 flex flex-col justify-center px-6 sm:px-12 py-12 w-full ${isDark ? "bg-black" : "bg-white"}`}>
+        <div
+          className={`flex-1 flex flex-col justify-center px-6 sm:px-12 py-12 w-full ${
+            isDark ? "bg-black" : "bg-white"
+          }`}
+        >
           <div className="w-full">
-            <h1 className={`text-6xl font-light mb-4 ${isDark ? "text-white" : "text-gray-900"}`}>
+            <h1
+              className={`text-6xl font-light mb-4 ${
+                isDark ? "text-white" : "text-gray-900"
+              }`}
+            >
               Impossible? <br /> Possible.
             </h1>
-            <p className={`${isDark ? "text-neutral-400" : "text-neutral-600"} mb-8`}>The AI for problem solvers</p>
+            <p
+              className={`${
+                isDark ? "text-neutral-400" : "text-neutral-600"
+              } mb-8`}
+            >
+              The AI for problem solvers
+            </p>
 
             <div
               className={`boxx rounded-2xl p-8 w-4/5 relative shadow-xl ${
-                isDark ? "border border-neutral-800" : "border border-neutral-200"
+                isDark
+                  ? "border border-neutral-800"
+                  : "border border-neutral-200"
               }`}
               style={isDark ? { backgroundColor: "#141413" } : undefined}
             >
@@ -285,15 +342,56 @@ export default function LoginPreview() {
           {/* Animated Coding Symbols */}
           <div className="absolute inset-0 pointer-events-none z-10">
             {[...Array(50)].map((_, i) => {
-              const symbols = ['</>', '}{', '[]', '"', "'", ';', ':', ',', '.', '?', '-', '()', '*', '&', '^', '%', '$', '#', '@', '!', '~', '`', '+', '=', '<', '>', '/', '\\'];
-              const randomSymbol = symbols[Math.floor(Math.random() * symbols.length)];
-              const colors = ['#00CED1', '#FFD700', '#FF69B4', '#7FFF00', '#FF6347', '#9D4EDD', '#06FFA5', '#FF1493', '#00FF7F'];
-              const randomColor = colors[Math.floor(Math.random() * colors.length)];
+              const symbols = [
+                "</>",
+                "}{",
+                "[]",
+                '"',
+                "'",
+                ";",
+                ":",
+                ",",
+                ".",
+                "?",
+                "-",
+                "()",
+                "*",
+                "&",
+                "^",
+                "%",
+                "$",
+                "#",
+                "@",
+                "!",
+                "~",
+                "`",
+                "+",
+                "=",
+                "<",
+                ">",
+                "/",
+                "\\",
+              ];
+              const randomSymbol =
+                symbols[Math.floor(Math.random() * symbols.length)];
+              const colors = [
+                "#00CED1",
+                "#FFD700",
+                "#FF69B4",
+                "#7FFF00",
+                "#FF6347",
+                "#9D4EDD",
+                "#06FFA5",
+                "#FF1493",
+                "#00FF7F",
+              ];
+              const randomColor =
+                colors[Math.floor(Math.random() * colors.length)];
               const randomLeft = Math.random() * 100;
               const randomDelay = Math.random() * 5;
               const randomDuration = 8 + Math.random() * 7;
               const randomRotation = -30 + Math.random() * 60;
-              
+
               return (
                 <div
                   key={i}
@@ -311,7 +409,9 @@ export default function LoginPreview() {
                       color: randomColor,
                       opacity: isDark ? 0.9 : 0.7,
                       transform: `rotate(${randomRotation}deg)`,
-                      textShadow: isDark ? '0 0 15px currentColor' : '0 0 8px currentColor',
+                      textShadow: isDark
+                        ? "0 0 15px currentColor"
+                        : "0 0 8px currentColor",
                     }}
                   >
                     {randomSymbol}
@@ -344,14 +444,151 @@ export default function LoginPreview() {
             Meet CodeSeed
           </h1>
           <p className="text-xl text-center text-gray-500">
-            CodeSeed is a next generation AI assistant built by Anthropic and trained to be safe, <br /> accurate, and secure to help you do your best work.
+            CodeSeed is a next generation AI assistant built by Anthropic and
+            trained to be safe, <br /> accurate, and secure to help you do your
+            best work.
           </p>
+          <br />
+          <br />
+          <br />
+          {/* Demo panel with video on the left and feature list on the right */}
+          <div className="mx-auto w-full max-w-6xl">
+            <div
+              className={`flex flex-col md:flex-row items-center justify-center gap-8`}
+            >
+              {/* Left: fixed-size video (645x405) centered */}
+              <div className="flex-shrink-0 flex items-center justify-center">
+                <div
+                  className={`rounded-2xl overflow-hidden shadow-xl w-[550px] h-[320px] flex items-center justify-center ${
+                    isDark
+                      ? "bg-neutral-900 border border-neutral-800"
+                      : "bg-white border border-neutral-200"
+                  }`}
+                >
+                  {/* video: fixed 550x320, autoplay/loop/muted; controls shown only after click */}
+                  <video
+                    src="./videos/vid1.mp4"
+                    className="w-[550px] h-[320px] object-cover"
+                    aria-label="Demo video"
+                    autoPlay
+                    loop
+                    muted
+                    playsInline
+                    controls={showVideoControls}
+                    controlsList="nodownload noplaybackrate"
+                    onClick={toggleVideoControls}
+                    onContextMenu={(e) => e.preventDefault()}
+                  />
+                </div>
+              </div>
+
+              {/* Right: feature text matching the image (centered vertically) */}
+              <div className="flex-1 text-left px-4 flex flex-col justify-center">
+                {/* Main heading (acts as accordion trigger) */}
+                <button
+                  onClick={() => setOpenSection("create")}
+                  aria-expanded={openSection === "create"}
+                  className="text-left w-full"
+                >
+                  <h3
+                    className={`text-2xl md:text-2xl font-serif mb-4 transition-colors ${
+                      isDark ? "text-white" : "text-gray-900"
+                    } ${openSection === "create" ? "" : "opacity-90"}`}
+                  >
+                    Create with CodeSeed
+                  </h3>
+                </button>
+
+                {/* paragraph shown only when this section is open (smooth height animation) */}
+                <Collapsible isOpen={openSection === "create"}>
+                  <p
+                    className={`${
+                      isDark ? "text-neutral-400" : "text-neutral-600"
+                    } mb-6 max-w-xl transition-opacity duration-500 ${openSection === "create" ? "opacity-100" : "opacity-0"}`}
+                  >
+                    Draft and iterate on websites, graphics, documents, and code
+                    alongside your chat with Artifacts.
+                  </p>
+                </Collapsible>
+
+                <div className={`py-4`}>
+                  {/* Bring your knowledge */}
+                  <div
+                    className={`border-t ${
+                      isDark ? "border-neutral-800" : "border-neutral-200"
+                    } pt-6 mb-6`}
+                  >
+                    <button
+                      onClick={() => setOpenSection("bring")}
+                      aria-expanded={openSection === "bring"}
+                      className="w-full text-left"
+                    >
+                      <h4
+                        className={`text-2xl font-serif font-medium mb-2 ${
+                          isDark ? "text-white" : "text-gray-900"
+                        } ${openSection === "bring" ? "" : "opacity-80"}`}
+                      >
+                        Bring your knowledge
+                      </h4>
+                    </button>
+
+                    <Collapsible isOpen={openSection === "bring"}>
+                      <p
+                        className={`${
+                          isDark ? "text-neutral-400" : "text-neutral-600"
+                        } mb-6 max-w-xl transition-opacity duration-500 ${openSection === "bring" ? "opacity-100" : "opacity-0"}`}
+                      >
+                        Create Projects and add knowledge so that you can deliver
+                        expert-level results with the Claude Pro, Team and
+                        Enterprise plans.
+                      </p>
+                    </Collapsible>
+                  </div>
+
+                  {/* Share and collaborate */}
+                  <div
+                    className={`border-t ${
+                      isDark ? "border-neutral-800" : "border-neutral-200"
+                    } pt-6 mb-6`}
+                  >
+                    <button
+                      onClick={() => setOpenSection("share")}
+                      aria-expanded={openSection === "share"}
+                      className="w-full text-left"
+                    >
+                      <h4
+                        className={`text-2xl font-serif  font-medium mb-2 ${
+                          isDark ? "text-white" : "text-gray-900"
+                        } ${openSection === "share" ? "" : "opacity-80"}`}
+                      >
+                        Share and collaborate with your team
+                      </h4>
+                    </button>
+
+                    <Collapsible isOpen={openSection === "share"}>
+                      <p
+                        className={`${
+                          isDark ? "text-neutral-400" : "text-neutral-600"
+                        } mb-6 max-w-xl transition-opacity duration-500 ${openSection === "share" ? "opacity-100" : "opacity-0"}`}
+                      >
+                        Share your best chats with your team to spark better ideas
+                        and move work forward on the Claude Team and Enterprise
+                        plans.
+                      </p>
+                    </Collapsible>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
           {[...Array(6)].map((_, i) => (
             <div
               key={i}
-              className={`p-6 rounded-lg ${
-                isDark ? "bg-gray-900" : "bg-white"
+              className={`cardd p-6 rounded-lg ${
+                isDark ? "" : "bg-white"
               } shadow-md`}
+              style={isDark ? { backgroundColor: "#141413" } : undefined}
             >
               <h2
                 className={`text-2xl font-semibold mb-3 ${
