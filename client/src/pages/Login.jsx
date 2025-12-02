@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect } from "react";
 import NavBar from "../components/Navbar";
+import Footer from "../components/Footer";
 
 export default function LoginPreview() {
   const emailRef = useRef(null);
@@ -15,6 +16,10 @@ export default function LoginPreview() {
   const [isDark, setIsDark] = useState(true);
   const [openSection, setOpenSection] = useState("create"); // default opened: Create with CodeSeed
   const [showVideoControls, setShowVideoControls] = useState(false);
+  const [faqOpen, setFaqOpen] = useState(null); // for managing FAQ collapsibles
+
+  // new: per-button animation map
+  const [animatedButtons, setAnimatedButtons] = useState({}); // { create: false, signin: false, help: false, ... }
 
   const toggleTheme = () => setIsDark((prev) => !prev);
 
@@ -63,6 +68,28 @@ export default function LoginPreview() {
       </div>
     );
   }
+
+  // unified click handler: activates only the clicked button, opens its section,
+  // and ensures other buttons' animations and paragraphs are not shown.
+  const handleButtonClick = (id) => {
+    // start animation for clicked button, stop others
+    setAnimatedButtons((prev) => {
+      const next = {};
+      // ensure previously known keys are reset
+      Object.keys(prev).forEach((k) => (next[k] = false));
+      next[id] = true;
+      return next;
+    });
+
+    // open the matching section (controls paragraph visibility)
+    setOpenSection(id);
+
+    // remove animation class after animation duration (adjust ms to match your CSS)
+    const ANIM_MS = 450;
+    setTimeout(() => {
+      setAnimatedButtons((prev) => ({ ...prev, [id]: false }));
+    }, ANIM_MS);
+  };
 
   return (
     <div
@@ -444,7 +471,7 @@ export default function LoginPreview() {
             Meet CodeSeed
           </h1>
           <p className="text-xl text-center text-gray-500">
-            CodeSeed is a next generation AI assistant built by Anthropic and
+            CodeSeed is a next generation AI assistant built by Lucky and
             trained to be safe, <br /> accurate, and secure to help you do your
             best work.
           </p>
@@ -539,7 +566,7 @@ export default function LoginPreview() {
                         } mb-6 max-w-xl transition-opacity duration-500 ${openSection === "bring" ? "opacity-100" : "opacity-0"}`}
                       >
                         Create Projects and add knowledge so that you can deliver
-                        expert-level results with the Claude Pro, Team and
+                        expert-level results with the CodeSeed Pro, Team and
                         Enterprise plans.
                       </p>
                     </Collapsible>
@@ -572,7 +599,7 @@ export default function LoginPreview() {
                         } mb-6 max-w-xl transition-opacity duration-500 ${openSection === "share" ? "opacity-100" : "opacity-0"}`}
                       >
                         Share your best chats with your team to spark better ideas
-                        and move work forward on the Claude Team and Enterprise
+                        and move work forward on the CodeSeed Team and Enterprise
                         plans.
                       </p>
                     </Collapsible>
@@ -582,28 +609,165 @@ export default function LoginPreview() {
             </div>
           </div>
 
-          {[...Array(6)].map((_, i) => (
-            <div
-              key={i}
-              className={`cardd p-6 rounded-lg ${
-                isDark ? "" : "bg-white"
-              } shadow-md`}
-              style={isDark ? { backgroundColor: "#141413" } : undefined}
+          {/* --- FAQ section (below the video/demo panel) --- */}
+          
+          <div className="mx-auto w-full max-w-4xl pt-12">
+            <h2
+              className={`text-4xl text-center mb-8 font-normal ${
+                isDark ? "text-white" : "text-gray-900"
+              }`}
             >
-              <h2
-                className={`text-2xl font-semibold mb-3 ${
-                  isDark ? "text-white" : "text-gray-900"
-                }`}
+              Frequently asked questions
+            </h2>
+              
+            <div className="space-y-2">
+              {/* FAQ item 1 */}
+              <div
+                className={`p-2 rounded-lg ${isDark ? "bg-transparent" : "bg-white"} shadow-sm`}
               >
-                Section {i + 1}
-              </h2>
-              <p>
-                This is some demo content to show the sticky navbar behavior.
-              </p>
+                <button
+                  type="button"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setFaqOpen((prev) => (prev === "q1" ? null : "q1"));
+                  }}
+                  className="w-full flex items-start justify-between gap-4"
+                >
+                  <div className="text-left">
+                    <div
+                      className={`text-xl font-serif ${
+                        isDark ? "text-white" : "text-gray-900"
+                      }`}
+                    >
+                      What is CodeSeed and how does it work?
+                    </div>
+                  </div>
+                  <div
+                    className={`text-2xl transition-transform ${
+                      faqOpen === "q1" ? "rotate-45" : ""
+                    } ${isDark ? "text-neutral-300" : "text-gray-700"}`}
+                  >
+                    +
+                  </div>
+                </button>
+
+                <Collapsible isOpen={faqOpen === "q1"}>
+                  <p
+                    className={`${isDark ? "text-neutral-400" : "text-neutral-600"} mt-4 leading-relaxed`}
+                  >
+                    CodeSeed is an artificial intelligence, trained by Lucky
+                    using Constitutional AI to be safe, accurate, and secure — the
+                    trusted assistant for you to do your best work. You can use
+                    CodeSeed for your own personal use or create a Team account to
+                    collaborate with your teammates.
+                    <a
+                      href="#"
+                      className="underline ml-1 text-purple-400"
+                    >
+                      Learn more about CodeSeed.
+                    </a>
+                  </p>
+                </Collapsible>
+              </div>
+
+              {/* FAQ item 2 */}
+              <div
+                className={`p-2 rounded-lg ${isDark ? "bg-transparent" : "bg-white"} shadow-sm`}
+              >
+                <button
+                  type="button"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setFaqOpen((prev) => (prev === "q2" ? null : "q2"));
+                  }}
+                  className="w-full flex items-start justify-between gap-4"
+                >
+                  <div className="text-left">
+                    <div
+                      className={`text-xl font-serif ${
+                        isDark ? "text-white" : "text-gray-900"
+                      }`}
+                    >
+                      What should I use CodeSeed for?
+                    </div>
+                  </div>
+                  <div
+                    className={`text-2xl transition-transform ${
+                      faqOpen === "q2" ? "rotate-45" : ""
+                    } ${isDark ? "text-neutral-300" : "text-gray-700"}`}
+                  >
+                    +
+                  </div>
+                </button>
+
+                <Collapsible isOpen={faqOpen === "q2"}>
+                  <p
+                    className={`${isDark ? "text-neutral-400" : "text-neutral-600"} mt-4 leading-relaxed`}
+                  >
+                    If you can dream it, CodeSeed can help you do it. CodeSeed can
+                    process large amounts of information, brainstorm ideas, generate
+                    text and code, help you understand subjects, coach you through
+                    difficult situations, simplify your busywork so you can focus
+                    on what matters most, and so much more.
+                  </p>
+                </Collapsible>
+              </div>
+
+              {/* FAQ item 3 */}
+              <div
+                className={`p-2 rounded-lg ${
+                  isDark ? "bg-transparent" : "bg-white"
+                } shadow-sm`}
+              >
+                <button
+                  type="button"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setFaqOpen((prev) => (prev === "q3" ? null : "q3"));
+                  }}
+                  className="w-full flex items-start justify-between gap-4"
+                >
+                  <div className="text-left">
+                    <div
+                      className={`text-xl font-serif ${
+                        isDark ? "text-white" : "text-gray-900"
+                      }`}
+                    >
+                      How much does it cost to use?
+                    </div>
+                  </div>
+                  <div
+                    className={`text-2xl transition-transform ${
+                      faqOpen === "q3" ? "rotate-45" : ""
+                    } ${isDark ? "text-neutral-300" : "text-gray-700"}`}
+                  >
+                    +
+                  </div>
+                </button>
+
+                <Collapsible isOpen={faqOpen === "q3"}>
+                  <p
+                    className={`${isDark ? "text-neutral-400" : "text-neutral-600"} mt-4 leading-relaxed`}
+                  >
+                    CodeSeed has five pricing plans available — Free, Pro, Max, Team,
+                    and Enterprise. The Free plan offers limited use with no payment
+                    required.
+                    <a
+                      href="#"
+                      className="underline ml-1 text-purple-400"
+                    >
+                      Learn more about available pricing plans.
+                    </a>
+                  </p>
+                </Collapsible>
+              </div>
             </div>
-          ))}
+          </div>
         </div>
       </div>
+
+      {/* place footer at bottom, pass theme */}
+      <Footer isDark={isDark} />
 
       <style>{`
         @keyframes pop {
@@ -627,6 +791,40 @@ export default function LoginPreview() {
         }
         .animate-symbol-fall {
           animation: symbol-fall linear infinite;
+        }
+
+        .button-row {
+          display: flex;
+          justify-content: center;
+          gap: 1rem;
+          margin-top: 2rem;
+        }
+
+        .btn {
+          flex: 1;
+          padding: 0.75rem 1.5rem;
+          border: none;
+          border-radius: 0.375rem;
+          font-size: 1rem;
+          font-weight: 500;
+          cursor: pointer;
+          transition: background-color 0.3s, transform 0.3s;
+        }
+
+        .btn-anim {
+          animation: pop 0.5s ease-out forwards;
+        }
+
+        .button-paragraphs {
+          max-width: 600px;
+          margin: 2rem auto;
+          text-align: center;
+        }
+
+        .btn-paragraph {
+          font-size: 1.125rem;
+          color: #6b7280;
+          margin-top: 1rem;
         }
       `}</style>
     </div>
