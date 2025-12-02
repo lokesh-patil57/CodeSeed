@@ -21,20 +21,22 @@ export default function NavBar({ isDark, toggleTheme, focusEmail }) {
         <nav>
           <div className="flex items-center justify-between h-16">
             {/* Left side - Logo */}
-            <div className="flex items-center ">
-              <div className=" w-10">
-                <img src="./images/logo.png" alt="" />
-              </div>
-              <div className=" w-40">
-                <img src="./images/namelogo.png" alt="" />
-              </div>
+            <div className="flex items-center gap-2 ">
+              <img src="./images/logo.png" className={`w-10 filter transition duration-200 ${
+                  isDark ? "" : "brightness-0"
+                }`}
+                alt="Name logo" />
+              <img
+                src="./images/namelogo.png"
+                className={`w-48 filter transition duration-200 ${
+                  isDark ? "" : "brightness-0"
+                }`}
+                alt="Name logo"
+              />
             </div>
 
             {/* Right side - Icons */}
             <div className="flex items-center space-x-2">
-              {/* quick action button that focuses email on the login page */}
-              
-
               <button
                 className={`${btnBase} ${btnHover} ${btnText}`}
                 aria-label="About"
@@ -67,6 +69,7 @@ export default function NavBar({ isDark, toggleTheme, focusEmail }) {
               >
                 <User size={20} />
               </button>
+
               <button
                 onClick={focusEmail}
                 className={`ml-2 px-3 py-1 rounded-full flex items-center gap-2 text-sm border ${
