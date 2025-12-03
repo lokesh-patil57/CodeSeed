@@ -27,16 +27,16 @@ export default function Footer({ isDark = true }) {
 
             <div className="mt-6 flex gap-4 ml-2">
               <a href="#" aria-label="X" className="hover:opacity-80">
-                <i class="fa-brands fa-x-twitter"></i>
+                <i className="fa-brands fa-x-twitter"></i>
               </a>
               <a href="#" aria-label="LinkedIn" className="hover:opacity-80">
-                <i class="fa-brands fa-linkedin"></i>
+                <i className="fa-brands fa-linkedin"></i>
               </a>
               <a href="#" aria-label="YouTube" className="hover:opacity-80">
-                <i class="fa-brands fa-youtube"></i>
+                <i className="fa-brands fa-youtube"></i>
               </a>
               <a href="#" aria-label="Instagram" className="hover:opacity-80">
-                <i class="fa-brands fa-instagram"></i>
+                <i className="fa-brands fa-instagram"></i>
               </a>
             </div>
           </div>
