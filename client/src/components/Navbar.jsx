@@ -72,10 +72,10 @@ export default function NavBar({ isDark, toggleTheme, focusEmail }) {
 
               <button
                 onClick={focusEmail}
-                className={`ml-2 px-3 py-1 rounded-full flex items-center gap-2 text-sm border ${
+                className={`ml-2 px-3 py-1 rounded-full flex items-center gap-2 text-sm border transition-colors duration-200 ${
                   isDark
-                    ? "border-white text-white bg-black"
-                    : "border-black text-black bg-white/0"
+                    ? "border-white text-white bg-black hover:bg-white/10"
+                    : "border-black text-black bg-white/0 hover:bg-black/5"
                 }`}
                 aria-label="Start with email"
                 title="Start with email"
