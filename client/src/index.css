@@ -1,8 +1,5 @@
 @import "tailwindcss";
 
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
 
 :root {
   font-family: "Poppins", sans-serif;
@@ -41,6 +38,20 @@ body {
 
 .custom-scroll:hover::-webkit-scrollbar-thumb {
   background: rgba(255, 255, 255, 0.35);
+}
+
+/* Loading animation */
+@keyframes bounce {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-10px);
+  }
+}
+
+.animate-bounce {
+  animation: bounce 1s infinite;
 }
 
 @keyframes symbol-fall {
