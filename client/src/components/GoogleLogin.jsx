@@ -24,7 +24,7 @@ export default function GoogleLogin({ isDark }) {
         window.google.accounts.id.renderButton(googleButtonRef.current, {
           theme: isDark ? "dark" : "light",
           size: "large",
-          width: 320,
+          width: 600,
           text: "continue_with",
         });
       }
