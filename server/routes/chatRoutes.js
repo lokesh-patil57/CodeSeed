@@ -7,6 +7,7 @@ import {
   sendMessage,
   updateChat,
   deleteChat,
+  generateCode,
 } from "../controllers/chatController.js";
 
 const router = express.Router();
@@ -19,6 +20,9 @@ router.post("/", createChat);
 
 // Get all chats for the authenticated user
 router.get("/", getUserChats);
+
+// Generate code from description
+router.post("/generate-code", generateCode);
 
 // Get a specific chat
 router.get("/:chatId", getChat);

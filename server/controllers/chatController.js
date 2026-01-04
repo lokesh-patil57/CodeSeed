@@ -1,5 +1,5 @@
 import Chat from "../models/chatModel.js";
-import { GoogleGenerativeAI } from "@google/generative-ai";
+import { GoogleGenAI } from "@google/genai";
 
 // Initialize Gemini AI
 const getGeminiClient = () => {
@@ -7,7 +7,9 @@ const getGeminiClient = () => {
   if (!apiKey) {
     throw new Error("GEMINI_API_KEY is not set in environment variables");
   }
-  return new GoogleGenerativeAI(apiKey);
+  return new GoogleGenAI({
+    apiKey: apiKey,
+  });
 };
 
 // Create a new chat
@@ -129,21 +131,36 @@ Always format your response with proper markdown, including code blocks.`;
     // Generate response with fallback models
     let aiContent = "";
     const modelsToTry = [
-      "gemini-1.5-flash-latest",
-      "gemini-1.5-pro-latest", 
-      "gemini-1.5-flash",
-      "gemini-1.5-pro",
-      "gemini-pro"
+      "gemini-2.5-flash",
+      "gemini-2.5-pro",
     ];
     
     let lastError = null;
     for (const modelName of modelsToTry) {
       try {
         console.log(`Attempting to use model: ${modelName}`);
-        const model = ai.getGenerativeModel({ model: modelName });
-        const result = await model.generateContent(fullPrompt);
-        const response = await result.response;
-        aiContent = response.text();
+        const result = await ai.models.generateContent({
+          model: modelName,
+          contents: [
+            {
+              role: "user",
+              parts: [{ text: fullPrompt }]
+            }
+          ]
+        });
+        // Extract text from response - @google/genai returns candidates with content
+        if (result?.candidates?.[0]?.content?.parts?.[0]?.text) {
+          aiContent = result.candidates[0].content.parts[0].text;
+        } else if (typeof result?.text === 'function') {
+          aiContent = result.text();
+        } else if (result?.text) {
+          aiContent = result.text;
+        }
+        
+        if (!aiContent) {
+          throw new Error('Empty response from model');
+        }
+        
         console.log(`Successfully used model: ${modelName}`);
         break; // Success, exit the loop
       } catch (error) {
@@ -157,10 +174,6 @@ Always format your response with proper markdown, including code blocks.`;
       throw new Error(
         `AI Service Unavailable. All models failed. Last error: ${lastError?.message || 'Unknown error'}`
       );
-    }
-
-    if (!aiContent) {
-      throw new Error("Failed to generate response from AI (Empty response)");
     }
 
     // Extract code blocks from response
@@ -251,6 +264,132 @@ export const deleteChat = async (req, res) => {
   }
 };
 
+// Generate code from user description
+export const generateCode = async (req, res) => {
+  try {
+    const { prompt, framework } = req.body;
+    const userId = req.userId;
+
+    if (!prompt || !prompt.trim()) {
+      return res.status(400).json({ success: false, message: "Prompt is required" });
+    }
+
+    const selectedFramework = framework || "HTML + CSS";
+
+    // Prepare system prompt for code generation
+    const systemPrompt = `You are an expert UI/component code generator. Generate clean, production-ready code based on user descriptions.
+
+Framework: ${selectedFramework}
+
+IMPORTANT:
+1. Generate ONLY the code, wrapped in a markdown code block with the appropriate language
+2. The code must be complete and ready to use
+3. Include all necessary HTML, CSS, and JavaScript
+4. Use modern best practices
+5. Make it responsive if applicable
+6. For frameworks like React/Vue, provide the complete component
+7. For HTML+CSS, include inline CSS or style tags
+8. For Tailwind, use Tailwind utility classes
+
+Code block format:
+\`\`\`language
+code here
+\`\`\`
+
+User description: ${prompt.trim()}`;
+
+    const ai = getGeminiClient();
+
+    // Try multiple models with fallback
+    let aiContent = "";
+    const modelsToTry = [
+      "gemini-2.5-flash",
+      "gemini-2.5-pro",
+    ];
+
+    let lastError = null;
+    for (const modelName of modelsToTry) {
+      try {
+        const result = await ai.models.generateContent({
+          model: modelName,
+          contents: [
+            {
+              role: "user",
+              parts: [{ text: systemPrompt }]
+            }
+          ]
+        });
+        
+        // Debug: log the result structure
+        console.log(`Response from ${modelName}:`, typeof result, Object.keys(result || {}).slice(0, 10));
+        
+        // Try different ways to extract text
+        if (result?.text && typeof result.text === 'string') {
+          aiContent = result.text;
+        } else if (result?.response?.text && typeof result.response.text === 'string') {
+          aiContent = result.response.text;
+        } else if (result?.content) {
+          // Handle response object with content property
+          aiContent = JSON.stringify(result.content);
+        } else if (result?.candidates) {
+          // Handle candidates array
+          const textContent = result.candidates[0]?.content?.parts?.[0]?.text;
+          if (textContent) {
+            aiContent = textContent;
+          }
+        } else {
+          // Last resort: stringify and try to find text
+          const str = JSON.stringify(result).substring(0, 1000);
+          console.log("Result stringified:", str);
+          throw new Error(`Could not extract text. Keys: ${Object.keys(result).join(', ')}`);
+        }
+        
+        if (!aiContent) {
+          throw new Error('Empty response from model');
+        }
+        
+        console.log(`Successfully extracted content from ${modelName}`);
+        break;
+      } catch (error) {
+        console.warn(`Model ${modelName} failed:`, error.message);
+        lastError = error;
+        continue;
+      }
+    }
+
+    if (!aiContent) {
+      throw new Error(
+        `Failed to generate code. Last error: ${lastError?.message || 'Unknown error'}`
+      );
+    }
+
+    // Extract code blocks
+    const codeBlocks = extractCodeBlocks(aiContent);
+
+    if (codeBlocks.length === 0) {
+      // If no code block found, treat entire response as code
+      codeBlocks.push({
+        language: getLanguageFromFramework(selectedFramework),
+        code: aiContent,
+        description: "",
+      });
+    }
+
+    res.json({
+      success: true,
+      code: aiContent,
+      codeBlocks,
+      framework: selectedFramework,
+    });
+  } catch (error) {
+    console.error("Generate code error:", error);
+    res.status(500).json({
+      success: false,
+      message: error.message || "Failed to generate code",
+    });
+  }
+};
+
 // Helper function to extract code blocks from markdown
 function extractCodeBlocks(content) {
   const codeBlocks = [];
@@ -266,4 +405,19 @@ function extractCodeBlocks(content) {
   }
 
   return codeBlocks;
+}
+
+// Helper function to get language from framework
+function getLanguageFromFramework(framework) {
+  const languageMap = {
+    "HTML + CSS": "html",
+    "HTML + Tailwind CSS": "html",
+    "HTML + Bootstrap": "html",
+    "HTML + CSS + JS": "javascript",
+    "React + Tailwind": "jsx",
+    "Vue + Tailwind": "vue",
+    "Angular + Bootstrap": "typescript",
+    "Next.js + Tailwind": "jsx",
+  };
+  return languageMap[framework] || "html";
 }

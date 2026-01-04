@@ -784,16 +784,72 @@ const defineLightGrayTheme = () => {
 };
 
 const Chat = () => {
-  const options = [
-    { value: "html-css", label: "HTML + CSS" },
-    { value: "html-tailwind", label: "HTML + Tailwind CSS" },
-    { value: "html-bootsrap", label: "HTML + Bootstrap" },
-    { value: "html-css-js", label: "HTML + JavaScript" },
-    { value: "html-tailwind-bootsrap", label: "HTML + Tailwind + Bootstrap" },
-  ];
-
+  const backendUrl = import.meta.env.VITE_BACKEND_URL;
   const [outputScreen, setOutputScreen] = useState(true);
   const [tab, setTab] = useState(1);
+  const [isLoading, setIsLoading] = useState(false);
+  const [generatedCode, setGeneratedCode] = useState("");
+  const [selectedFramework, setSelectedFramework] = useState();
+  const [description, setDescription] = useState("");
+
+  async function getResponse() {
+    if (!description.trim()) {
+      alert("Please describe your component");
+      return;
+    }
+
+    setIsLoading(true);
+    try {
+      const response = await fetch(`${backendUrl}/api/chat/generate-code`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify({
+          prompt: description,
+          framework: getFrameworkLabel(selectedFramework),
+        }),
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        if (data.success) {
+          setGeneratedCode(data.code);
+          setOutputScreen(true);
+          setTab(1);
+        }
+      } else {
+        const error = await response.json();
+        alert("Error: " + (error.message || "Failed to generate code"));
+      }
+    } catch (error) {
+      console.error("Error:", error);
+      alert("Error: " + error.message);
+    } finally {
+      setIsLoading(false);
+    }
+  }
+
+  function getFrameworkLabel(value) {
+    const frameworkMap = {
+      "html-css": "HTML + CSS",
+      "html-tailwind": "HTML + Tailwind CSS",
+      "html-bootsrap": "HTML + Bootstrap",
+      "html-css-js": "HTML + CSS + JS",
+      "html-tailwind-bootsrap": "HTML + Tailwind + Bootstrap",
+    };
+    return frameworkMap[value] || "HTML + CSS";
+  }
+
+  function getLanguageFromFramework(value) {
+    const languageMap = {
+      "html-css": "html",
+      "html-tailwind": "html",
+      "html-bootsrap": "html",
+      "html-css-js": "javascript",
+      "html-tailwind-bootsrap": "html",
+    };
+    return languageMap[value] || "html";
+  }
   return (
     <>
       <NavBar />
@@ -810,30 +866,45 @@ const Chat = () => {
           </p>
 
           <p className="text-xl font-bold mt-3">Framework</p>
-          <Select className="mt-3" options={options} />
+          <Select 
+            className="mt-3" 
+            options={[
+              { value: "html-css", label: "HTML + CSS" },
+              { value: "html-tailwind", label: "HTML + Tailwind CSS" },
+              { value: "html-bootsrap", label: "HTML + Bootstrap" },
+              { value: "html-css-js", label: "HTML + JavaScript" },
+              { value: "html-tailwind-bootsrap", label: "HTML + Tailwind + Bootstrap" },
+            ]}
+            value={{ value: selectedFramework, label: getFrameworkLabel(selectedFramework) }}
+            onChange={(option) => setSelectedFramework(option.value)}
+          />
 
           <p className="text-xl mt-5 font-semibold text-gray-700">
             Describe Your Component
           </p>
 
           <textarea
+
             className="w-full border-none mt-2 rounded-xl bg-gray-100 min-h-[150px] p-3"
             placeholder="Describe your component in detail..."
+            value={description}
+            onChange={(e) => setDescription(e.target.value)}
           />
 
           <div className="flex items-center justify-between mt-4">
             <p className="text-gray-600">Click Generate to create code</p>
 
-            <button
-              onClick={() => setOutputScreen(true)}
-              className="font-medium px-5 py-2 rounded-xl bg-blue-500 text-white hover:opacity-90"
+            <button 
+              onClick={getResponse}
+              disabled={isLoading}
+              className="font-medium px-5 py-2 rounded-xl bg-blue-500 text-white hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              Generate &nbsp;
-              <i class="fa-solid fa-code"></i>
+              {isLoading ? "Generating..." : "Generate"} &nbsp;
+              <i className="fa-solid fa-code"></i>
             </button>
           </div>
         </div>
-      
+
         {/* RIGHT PANEL */}
         <div className="right w-[50%] h-[80vh] rounded-xl border">
           {outputScreen ? (
@@ -877,7 +948,15 @@ const Chat = () => {
                   ) : (
                     <>
                       <button className="text-xl rounded-xl px-3 py-2 border border-zinc-600 hover:cursor-pointer hover:bg-gray-200">
-                        <svg xmlns="http://www.w3.org/2000/svg" height="26px" viewBox="0 -960 960 960" width="24px" fill="#000000"><path d="M200-120q-33 0-56.5-23.5T120-200v-560q0-33 23.5-56.5T200-840h280v80H200v560h560v-280h80v280q0 33-23.5 56.5T760-120H200Zm188-212-56-56 372-372H560v-80h280v280h-80v-144L388-332Z"/></svg>
+                        <svg
+                          xmlns="http://www.w3.org/2000/svg"
+                          height="26px"
+                          viewBox="0 -960 960 960"
+                          width="24px"
+                          fill="#000000"
+                        >
+                          <path d="M200-120q-33 0-56.5-23.5T120-200v-560q0-33 23.5-56.5T200-840h280v80H200v560h560v-280h80v280q0 33-23.5 56.5T760-120H200Zm188-212-56-56 372-372H560v-80h280v280h-80v-144L388-332Z" />
+                        </svg>
                       </button>
                       <button className="text-xl rounded-xl px-3 py-2 border border-zinc-600 hover:cursor-pointer hover:bg-gray-200">
                         <i class="fa-solid fa-arrows-rotate"></i>
@@ -891,13 +970,27 @@ const Chat = () => {
                   <>
                     <Editor
                       height="100%"
-                      language="html"
-                      value="// some comment"
+                      language={getLanguageFromFramework(selectedFramework)}
+                      value={generatedCode || "// Generated code will appear here"}
+                      theme="vs-light"
+                      options={{
+                        readOnly: false,
+                        wordWrap: "on",
+                        minimap: { enabled: false },
+                      }}
                     />
                   </>
                 ) : (
                   <>
-                    <div className="preview w-full h-full"></div>
+                    <div className="preview w-full h-full bg-white p-4 overflow-auto">
+                      {generatedCode && (
+                        <iframe
+                          title="preview"
+                          srcDoc={generatedCode}
+                          style={{ width: "100%", height: "100%", border: "none" }}
+                        />
+                      )}
+                    </div>
                   </>
                 )}
               </div>
