@@ -784,6 +784,25 @@ const defineLightGrayTheme = () => {
 };
 
 const Chat = () => {
-  
-}
+  const options = [
+    { value: "html-css", label: "HTML + CSS" },
+    { value: "html-tailwind", label: "HTML + Tailwind CSS" },
+    { value: "html-bootsrap", label: "HTML + Bootstrap" },
+    { value: "html-css-js", label: "HTML + JavaScript" },
+    { value: "html-tailwind-bootsrap", label: "HTML + Tailwind + Bootstrap" },
+  ];
+
+  const [outputScreen, setOutputScreen] = useState(true);
+  const [tab, setTab] = useState(1);
+  return (
+    <>
+      <NavBar />
+
+      <div className="flex px-[50px] mt-10 justify-between gap-5">
+        
+      </div>
+    </>
+  );
+};
+
 export default Chat;
