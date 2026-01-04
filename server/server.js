@@ -21,6 +21,13 @@ app.use(
 );
 app.use(cookieParser());
 
+// Security headers for iframe and preview functionality
+app.use((req, res, next) => {
+  res.setHeader("Cross-Origin-Opener-Policy", "same-origin-allow-popups");
+  res.setHeader("Cross-Origin-Embedder-Policy", "unsafe-none");
+  next();
+});
+
 
 //API endpoints
 app.get("/", (req, res) => {
