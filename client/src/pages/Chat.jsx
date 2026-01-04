@@ -799,6 +799,41 @@ const Chat = () => {
       <NavBar />
 
       <div className="flex px-[50px] mt-10 justify-between gap-5">
+        {/* LEFT PANEL */}
+        <div className="left w-[50%] h-[80vh]">
+          <h3 className="font-semibold text-xl text-blue-500">
+            AI Component Generator
+          </h3>
+
+          <p className="text-gray-600">
+            Describe your component and let AI code for you!
+          </p>
+
+          <p className="text-xl font-bold mt-3">Framework</p>
+          <Select className="mt-3" options={options} />
+
+          <p className="text-xl mt-5 font-semibold text-gray-700">
+            Describe Your Component
+          </p>
+
+          <textarea
+            className="w-full border-none mt-2 rounded-xl bg-gray-100 min-h-[150px] p-3"
+            placeholder="Describe your component in detail..."
+          />
+
+          <div className="flex items-center justify-between mt-4">
+            <p className="text-gray-600">Click Generate to create code</p>
+
+            <button
+              onClick={() => setOutputScreen(true)}
+              className="font-medium px-5 py-2 rounded-xl bg-blue-500 text-white hover:opacity-90"
+            >
+              Generate &nbsp;
+              <i class="fa-solid fa-code"></i>
+            </button>
+          </div>
+        </div>
+      
         
       </div>
     </>
