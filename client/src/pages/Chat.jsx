@@ -834,7 +834,81 @@ const Chat = () => {
           </div>
         </div>
       
-        
+        {/* RIGHT PANEL */}
+        <div className="right w-[50%] h-[80vh] rounded-xl border">
+          {outputScreen ? (
+            <div className="codespace flex flex-col h-full">
+              <div className="top  w-full h-[60px] flex  items-center px-2 gap-1.5 ">
+                <button
+                  onClick={() => {
+                    setTab(1);
+                  }}
+                  className={`flex w-[50%] items-center justify-center font-semibold text-xl  py-2 bg-gray-300 rounded-xl hover:cursor-pointer hover:opacity-[.8] ${
+                    tab === 1 ? "bg-gray-400" : ""
+                  }`}
+                >
+                  Code
+                </button>
+                <button
+                  onClick={() => {
+                    setTab(2);
+                  }}
+                  className={`flex w-[50%] items-center justify-center font-semibold text-xl  py-2 bg-gray-300 rounded-xl hover:cursor-pointer hover:opacity-[.8] ${
+                    tab === 2 ? "bg-gray-400" : ""
+                  }`}
+                >
+                  Preview
+                </button>
+              </div>
+              <div className="top2 w-full h-[60px] flex justify-between items-center px-2 gap-1.5">
+                <div className="left">
+                  <p className="font-semibold ml-5">Code Editor</p>
+                </div>
+                <div className="right flex justify-center items-center gap-2">
+                  {tab === 1 ? (
+                    <>
+                      <button className="text-xl rounded-xl px-3 py-2 border border-zinc-600 hover:cursor-pointer hover:bg-gray-200">
+                        <i className="fa-regular fa-copy"></i>
+                      </button>
+                      <button className="text-xl rounded-xl px-3 py-2 border border-zinc-600 hover:cursor-pointer hover:bg-gray-200">
+                        <i className="fa-solid fa-file-export"></i>
+                      </button>
+                    </>
+                  ) : (
+                    <>
+                      <button className="text-xl rounded-xl px-3 py-2 border border-zinc-600 hover:cursor-pointer hover:bg-gray-200">
+                        <svg xmlns="http://www.w3.org/2000/svg" height="26px" viewBox="0 -960 960 960" width="24px" fill="#000000"><path d="M200-120q-33 0-56.5-23.5T120-200v-560q0-33 23.5-56.5T200-840h280v80H200v560h560v-280h80v280q0 33-23.5 56.5T760-120H200Zm188-212-56-56 372-372H560v-80h280v280h-80v-144L388-332Z"/></svg>
+                      </button>
+                      <button className="text-xl rounded-xl px-3 py-2 border border-zinc-600 hover:cursor-pointer hover:bg-gray-200">
+                        <i class="fa-solid fa-arrows-rotate"></i>
+                      </button>
+                    </>
+                  )}
+                </div>
+              </div>
+              <div className="editor flex flex-1 w-full ">
+                {tab === 1 ? (
+                  <>
+                    <Editor
+                      height="100%"
+                      language="html"
+                      value="// some comment"
+                    />
+                  </>
+                ) : (
+                  <>
+                    <div className="preview w-full h-full"></div>
+                  </>
+                )}
+              </div>
+            </div>
+          ) : (
+            <div className="flex flex-col items-center justify-center h-full text-gray-500">
+              <i className="fa-solid fa-code text-8xl"></i>
+              <p className="mt-4 text-xl">Your code will appear here</p>
+            </div>
+          )}
+        </div>
       </div>
     </>
   );
