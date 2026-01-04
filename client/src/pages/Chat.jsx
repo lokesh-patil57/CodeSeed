@@ -749,3 +749,41 @@
 
 // export default Chat;
 
+import React, { useState } from "react";
+import NavBar from "../components/Navbar";
+import Select from "react-select";
+import Editor from "@monaco-editor/react";
+import * as monaco from "monaco-editor";
+
+/* ============================
+   VS CODE–LIKE LIGHT GRAY THEME
+============================= */
+const defineLightGrayTheme = () => {
+  monaco.editor.defineTheme("vscode-light-gray", {
+    base: "vs",
+    inherit: true,
+    rules: [
+      { token: "comment", foreground: "6A737D", fontStyle: "italic" },
+      { token: "keyword", foreground: "0000FF" },
+      { token: "string", foreground: "A31515" },
+      { token: "number", foreground: "098658" },
+      { token: "type.identifier", foreground: "267F99" },
+    ],
+    colors: {
+      "editor.background": "#F5F5F5", // ✅ VS Code light gray
+      "editor.foreground": "#333333",
+      "editorLineNumber.foreground": "#999999",
+      "editorLineNumber.activeForeground": "#000000",
+      "editorCursor.foreground": "#000000",
+      "editor.selectionBackground": "#ADD6FF",
+      "editor.lineHighlightBackground": "#EAEAEA",
+      "editorIndentGuide.background": "#D3D3D3",
+      "editorIndentGuide.activeBackground": "#939393",
+    },
+  });
+};
+
+const Chat = () => {
+  
+}
+export default Chat;
