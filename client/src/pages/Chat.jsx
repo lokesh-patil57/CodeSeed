@@ -1,800 +1,266 @@
-// import { useEffect, useMemo, useState, useContext, useRef } from "react";
-// import { useNavigate } from "react-router-dom";
-// import { toast } from "react-toastify";
-// import {
-//   ArrowUp,
-//   Box,
-//   Code,
-//   Clock,
-//   FolderClosed,
-//   MessageSquarePlus,
-//   PanelsTopLeft,
-//   Plus,
-//   Sparkles,
-//   User,
-//   Sun,
-//   Moon,
-//   Menu,
-//   X,
-//   Trash2,
-//   Edit2,
-//   ChevronRight,
-//   Settings,
-//   LogOut,
-// } from "lucide-react";
-// import { format } from "date-fns";
-// import { AppContext } from "../context/AppContext";
-// import MessageBubble from "../components/MessageBubble";
-// import CodePanel from "../components/CodePanel";
-// import SettingsModal from "../components/SettingsModal";
-
-// const PRIMARY_BG = "#050505";
-// const PANEL_BG = "#0c0d0f";
-// const ACCENT = "#f4a261";
-
-// const AVAILABLE_LANGUAGES = [
-//   "HTML + CSS",
-//   "HTML + Tailwind CSS",
-//   "HTML + Bootstrap",
-//   "HTML + CSS + JS",
-//   "HTML + Tailwind + Bootstrap",
-//   "React + Tailwind",
-//   "Vue + Tailwind",
-//   "Angular + Bootstrap",
-//   "Next.js + Tailwind",
-// ];
-
-// const SUGGESTED_PROMPTS = [
-//   "Create a login form",
-//   "Build a pricing card",
-//   "Design a navigation bar",
-//   "Make a button component",
-//   "Create a modal dialog",
-// ];
-
-// function Chat() {
-//   const navigate = useNavigate();
-//   const { isDark, setIsDark } = useContext(AppContext);
-//   const [fadeIn, setFadeIn] = useState(false);
-//   const [user, setUser] = useState(null);
-//   const [userName, setUserName] = useState("there");
-//   const [sidebarOpen, setSidebarOpen] = useState(true);
-//   const [chats, setChats] = useState([]);
-//   const [currentChat, setCurrentChat] = useState(null);
-//   const [messages, setMessages] = useState([]);
-//   const [inputMessage, setInputMessage] = useState("");
-//   const [selectedLanguage, setSelectedLanguage] = useState("HTML + CSS");
-//   const [isLoading, setIsLoading] = useState(false);
-//   const [codePanelOpen, setCodePanelOpen] = useState(false);
-//   const [codePanelData, setCodePanelData] = useState(null);
-//   const [settingsOpen, setSettingsOpen] = useState(false);
-//   const [showWelcome, setShowWelcome] = useState(true);
-//   const [editingChatId, setEditingChatId] = useState(null);
-//   const [editingTitle, setEditingTitle] = useState("");
-//   const messagesEndRef = useRef(null);
-//   const inputRef = useRef(null);
-//   const backendUrl = import.meta.env.VITE_BACKEND_URL;
-
-//   const greeting = useMemo(() => {
-//     const hour = new Date().getHours();
-//     if (hour < 12) return "Good morning";
-//     if (hour < 17) return "Good afternoon";
-//     return "Good evening";
-//   }, []);
-
-//   const currentDate = useMemo(() => {
-//     return format(new Date(), "EEEE, MMMM d, yyyy");
-//   }, []);
-
-//   useEffect(() => {
-//     const storedUser = localStorage.getItem("user");
-//     if (!storedUser) {
-//       navigate("/");
-//       return;
-//     }
-
-//     try {
-//       const parsedUser = JSON.parse(storedUser);
-//       setUser(parsedUser);
-//       const fallbackName =
-//         parsedUser?.username ||
-//         parsedUser?.email?.split("@")[0] ||
-//         "friend";
-//       setUserName(fallbackName);
-//       setTimeout(() => setFadeIn(true), 150);
-//       loadChats();
-//     } catch (error) {
-//       console.error("Unable to parse stored user:", error);
-//       navigate("/");
-//     }
-//   }, [navigate]);
-
-//   useEffect(() => {
-//     scrollToBottom();
-//   }, [messages]);
-
-//   const scrollToBottom = () => {
-//     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-//   };
-
-//   const loadChats = async () => {
-//     try {
-//       const response = await fetch(`${backendUrl}/api/chat`, {
-//         credentials: "include",
-//       });
-//       if (response.ok) {
-//         const data = await response.json();
-//         if (data.success) {
-//           setChats(data.chats || []);
-//         }
-//       }
-//     } catch (error) {
-//       console.error("Error loading chats:", error);
-//     }
-//   };
-
-//   const createNewChat = async () => {
-//     try {
-//       const response = await fetch(`${backendUrl}/api/chat`, {
-//         method: "POST",
-//         headers: { "Content-Type": "application/json" },
-//         credentials: "include",
-//         body: JSON.stringify({
-//           title: "New Chat",
-//           selectedLanguage,
-//         }),
-//       });
-
-//       if (response.ok) {
-//         const data = await response.json();
-//         if (data.success) {
-//           const newChat = data.chat;
-//           setCurrentChat(newChat);
-//           setMessages([]);
-//           setShowWelcome(false);
-//           setCodePanelOpen(false);
-//           loadChats();
-//           inputRef.current?.focus();
-//         }
-//       }
-//     } catch (error) {
-//       console.error("Error creating chat:", error);
-//       toast.error("Failed to create new chat");
-//     }
-//   };
-
-//   const loadChat = async (chatId) => {
-//     try {
-//       const response = await fetch(`${backendUrl}/api/chat/${chatId}`, {
-//         credentials: "include",
-//       });
-//       if (response.ok) {
-//         const data = await response.json();
-//         if (data.success) {
-//           setCurrentChat(data.chat);
-//           setMessages(data.chat.messages || []);
-//           setSelectedLanguage(data.chat.selectedLanguage || "HTML + CSS");
-//           setShowWelcome(false);
-//           setCodePanelOpen(false);
-//         }
-//       }
-//     } catch (error) {
-//       console.error("Error loading chat:", error);
-//       toast.error("Failed to load chat");
-//     }
-//   };
-
-//   const sendMessage = async () => {
-//     if (!inputMessage.trim() || isLoading) return;
-
-//     const userMessage = {
-//       role: "user",
-//       content: inputMessage.trim(),
-//       timestamp: new Date(),
-//     };
-
-//     // If no current chat, create one
-//     if (!currentChat) {
-//       await createNewChat();
-//       // Wait a bit for chat to be created
-//       await new Promise((resolve) => setTimeout(resolve, 100));
-//     }
-
-//     // Add user message to UI immediately
-//     setMessages((prev) => [...prev, userMessage]);
-//     setInputMessage("");
-//     setIsLoading(true);
-
-//     try {
-//       const chatId = currentChat?._id;
-//       if (!chatId) {
-//         toast.error("Chat not initialized");
-//         return;
-//       }
-
-//       const response = await fetch(`${backendUrl}/api/chat/${chatId}/message`, {
-//         method: "POST",
-//         headers: { "Content-Type": "application/json" },
-//         credentials: "include",
-//         body: JSON.stringify({
-//           message: userMessage.content,
-//           selectedLanguage,
-//         }),
-//       });
-
-//       if (response.ok) {
-//         const data = await response.json();
-//         if (data.success) {
-//           setMessages((prev) => [...prev, data.message]);
-//           if (data.chat?.title && data.chat.title !== currentChat?.title) {
-//             setCurrentChat((prev) => ({ ...prev, title: data.chat.title }));
-//             loadChats();
-//           }
-//         }
-//       } else {
-//         const errorData = await response.json();
-//         toast.error(errorData.message || "Failed to send message");
-//       }
-//     } catch (error) {
-//       console.error("Error sending message:", error);
-//       toast.error("Failed to send message");
-//     } finally {
-//       setIsLoading(false);
-//     }
-//   };
-
-//   const handleCodeBlockClick = (code, language) => {
-//     setCodePanelData({
-//       codeBlocks: [{ code, language }],
-//       language: selectedLanguage,
-//     });
-//     setCodePanelOpen(true);
-//   };
-
-//   const deleteChat = async (chatId, e) => {
-//     e.stopPropagation();
-//     if (!window.confirm("Are you sure you want to delete this chat?")) return;
-
-//     try {
-//       const response = await fetch(`${backendUrl}/api/chat/${chatId}`, {
-//         method: "DELETE",
-//         credentials: "include",
-//       });
-
-//       if (response.ok) {
-//         if (currentChat?._id === chatId) {
-//           setCurrentChat(null);
-//           setMessages([]);
-//           setShowWelcome(true);
-//         }
-//         loadChats();
-//         toast.success("Chat deleted");
-//       }
-//     } catch (error) {
-//       console.error("Error deleting chat:", error);
-//       toast.error("Failed to delete chat");
-//     }
-//   };
-
-//   const updateChatTitle = async (chatId, newTitle) => {
-//     try {
-//       const response = await fetch(`${backendUrl}/api/chat/${chatId}`, {
-//         method: "PATCH",
-//         headers: { "Content-Type": "application/json" },
-//         credentials: "include",
-//         body: JSON.stringify({ title: newTitle }),
-//       });
-
-//       if (response.ok) {
-//         loadChats();
-//         if (currentChat?._id === chatId) {
-//           setCurrentChat((prev) => ({ ...prev, title: newTitle }));
-//         }
-//       }
-//     } catch (error) {
-//       console.error("Error updating chat:", error);
-//     }
-//   };
-
-//   const handleLogout = async () => {
-//     try {
-//       const res = await fetch(`${backendUrl}/api/auth/logout`, {
-//         method: "POST",
-//         credentials: "include",
-//       });
-//       if (res.ok) {
-//         localStorage.removeItem("user");
-//         localStorage.removeItem("pendingVerifyEmail");
-//         navigate("/", { replace: true });
-//         toast.success("Logged out");
-//       }
-//     } catch (error) {
-//       console.error("Logout error:", error);
-//       localStorage.removeItem("user");
-//       navigate("/", { replace: true });
-//     }
-//   };
-
-//   const handleKeyPress = (e) => {
-//     if (e.key === "Enter" && !e.shiftKey) {
-//       e.preventDefault();
-//       sendMessage();
-//     }
-//   };
-
-//   const textColor = isDark ? "text-white" : "text-gray-900";
-//   const bgMain = isDark ? PRIMARY_BG : "#f5f5f7";
-//   const bgPanel = isDark ? PANEL_BG : "#ffffff";
-//   const toggleTheme = () => setIsDark((prev) => !prev);
-
-//   // Extract code blocks from messages for code panel
-//   useEffect(() => {
-//     if (messages.length > 0) {
-//       const lastMessage = messages[messages.length - 1];
-//       if (lastMessage?.role === "assistant") {
-//         // Check if message has codeBlocks property
-//         if (lastMessage?.codeBlocks?.length > 0) {
-//           setCodePanelData({
-//             codeBlocks: lastMessage.codeBlocks,
-//             language: selectedLanguage,
-//           });
-//         } else {
-//           // Extract code blocks from markdown content
-//           const codeBlockRegex = /```(\w+)?\n([\s\S]*?)```/g;
-//           const codeBlocks = [];
-//           let match;
-//           while ((match = codeBlockRegex.exec(lastMessage.content)) !== null) {
-//             codeBlocks.push({
-//               language: match[1] || "text",
-//               code: match[2].trim(),
-//               description: "",
-//             });
-//           }
-//           if (codeBlocks.length > 0) {
-//             setCodePanelData({
-//               codeBlocks,
-//               language: selectedLanguage,
-//             });
-//           }
-//         }
-//       }
-//     }
-//   }, [messages, selectedLanguage]);
-
-//   return (
-//     <div
-//       className={`flex min-h-screen transition-opacity duration-500 ${
-//         fadeIn ? "opacity-100" : "opacity-0"
-//       } ${textColor}`}
-//       style={{ backgroundColor: bgMain }}
-//     >
-//       {/* Sidebar */}
-//       <aside
-//         className={`${
-//           sidebarOpen ? "translate-x-0" : "-translate-x-full"
-//         } md:translate-x-0 fixed md:static inset-y-0 left-0 z-30 flex flex-col justify-between w-72 px-4 py-6 border-r transition-transform duration-300 ${
-//           isDark ? "border-white/5" : "border-black/5"
-//         }`}
-//         style={{ backgroundColor: bgPanel }}
-//       >
-//         <div className="flex-1 overflow-hidden flex flex-col">
-//           {/* Logo and toggle */}
-//           <div className="flex items-center justify-between mb-6">
-//             <button
-//               className={`flex items-center gap-2 rounded-full border px-4 py-2 text-sm hover:border-opacity-70 transition-colors ${
-//                 isDark
-//                   ? "border-white/10 text-white/80"
-//                   : "border-black/10 text-gray-800"
-//               }`}
-//             >
-//               <PanelsTopLeft size={16} /> CodeSeed
-//             </button>
-//             <button
-//               onClick={() => setSidebarOpen(false)}
-//               className="md:hidden p-2 rounded-lg hover:bg-black/5"
-//             >
-//               <X size={18} />
-//             </button>
-//           </div>
-
-//           {/* New Chat Button */}
-//           <button
-//             onClick={createNewChat}
-//             className={`w-full flex items-center justify-center gap-2 rounded-2xl py-3 text-sm font-medium transition mb-6 ${
-//               isDark ? "bg-white/5 hover:bg-white/10" : "bg-black text-white hover:bg-gray-900"
-//             }`}
-//           >
-//             <Plus size={16} /> New chat
-//           </button>
-
-//           {/* Navigation */}
-//           <nav
-//             className={`space-y-2 text-sm mb-6 ${
-//               isDark ? "text-white/70" : "text-gray-700"
-//             }`}
-//           >
-//             {[
-//               { icon: MessageSquarePlus, label: "Chats" },
-//               { icon: FolderClosed, label: "Projects" },
-//               { icon: Box, label: "Artifacts" },
-//               { icon: Code, label: "Code" },
-//             ].map((item) => (
-//               <button
-//                 key={item.label}
-//                 className={`flex w-full items-center gap-3 rounded-xl px-3 py-2 hover:bg-black/5 ${
-//                   isDark ? "hover:bg-white/5" : ""
-//                 }`}
-//               >
-//                 <item.icon size={16} />
-//                 {item.label}
-//               </button>
-//             ))}
-//           </nav>
-
-//           {/* Recent Chats */}
-//           <div className="flex-1 overflow-hidden flex flex-col">
-//             <div className="text-xs uppercase tracking-widest text-white/50 mb-4">Recents</div>
-//             <div
-//               className={`flex-1 overflow-y-auto space-y-1 pr-1 text-sm custom-scroll ${
-//                 isDark ? "text-white/70" : "text-gray-700"
-//               }`}
-//             >
-//               {chats.map((chat) => (
-//                 <div
-//                   key={chat._id}
-//                   className={`group relative rounded-xl px-3 py-2 cursor-pointer transition ${
-//                     currentChat?._id === chat._id
-//                       ? isDark
-//                         ? "bg-white/10"
-//                         : "bg-black/10"
-//                       : "hover:bg-white/5"
-//                   }`}
-//                   onClick={() => loadChat(chat._id)}
-//                 >
-//                   {editingChatId === chat._id ? (
-//                     <input
-//                       value={editingTitle}
-//                       onChange={(e) => setEditingTitle(e.target.value)}
-//                       onBlur={() => {
-//                         if (editingTitle.trim()) {
-//                           updateChatTitle(chat._id, editingTitle.trim());
-//                         }
-//                         setEditingChatId(null);
-//                       }}
-//                       onKeyPress={(e) => {
-//                         if (e.key === "Enter") {
-//                           if (editingTitle.trim()) {
-//                             updateChatTitle(chat._id, editingTitle.trim());
-//                           }
-//                           setEditingChatId(null);
-//                         }
-//                       }}
-//                       className="w-full bg-transparent border-none outline-none"
-//                       autoFocus
-//                       onClick={(e) => e.stopPropagation()}
-//                     />
-//                   ) : (
-//                     <>
-//                       <div className="truncate">{chat.title}</div>
-//                       <div className="text-xs opacity-50 mt-1">
-//                         {format(new Date(chat.updatedAt), "MMM d")}
-//                       </div>
-//                       <div className="absolute right-2 top-2 opacity-0 group-hover:opacity-100 flex gap-1">
-//                         <button
-//                           onClick={(e) => {
-//                             e.stopPropagation();
-//                             setEditingChatId(chat._id);
-//                             setEditingTitle(chat.title);
-//                           }}
-//                           className="p-1 rounded hover:bg-white/10"
-//                         >
-//                           <Edit2 size={12} />
-//                         </button>
-//                         <button
-//                           onClick={(e) => deleteChat(chat._id, e)}
-//                           className="p-1 rounded hover:bg-red-500/20"
-//                         >
-//                           <Trash2 size={12} />
-//                         </button>
-//                       </div>
-//                     </>
-//                   )}
-//                 </div>
-//               ))}
-//             </div>
-//           </div>
-//         </div>
-
-//         {/* User Profile */}
-//         <div
-//           className={`space-y-3 text-sm border-t pt-4 ${
-//             isDark ? "border-white/10" : "border-black/10"
-//           }`}
-//         >
-//           <div
-//             className={`flex items-center gap-3 rounded-2xl px-3 py-2 ${
-//               isDark ? "bg-white/5" : "bg-black/5"
-//             }`}
-//           >
-//             <div
-//               className={`flex h-9 w-9 items-center justify-center rounded-full ${
-//                 isDark ? "bg-white/10" : "bg-black/10"
-//               }`}
-//             >
-//               <User size={16} />
-//             </div>
-//             <div className="flex-1 min-w-0">
-//               <p className="text-sm font-medium truncate">{userName}</p>
-//             </div>
-//           </div>
-//           <button
-//             onClick={() => setSettingsOpen(true)}
-//             className="w-full flex items-center gap-3 rounded-xl px-3 py-2 hover:bg-black/5 text-left"
-//           >
-//             <Settings size={16} />
-//             Settings
-//           </button>
-//           <button
-//             onClick={handleLogout}
-//             className="w-full flex items-center gap-3 rounded-xl px-3 py-2 hover:bg-black/5 text-left text-red-400"
-//           >
-//             <LogOut size={16} />
-//             Log out
-//           </button>
-//         </div>
-//       </aside>
-
-//       {/* Sidebar overlay for mobile */}
-//       {sidebarOpen && (
-//         <div
-//           className="md:hidden fixed inset-0 bg-black/50 z-20"
-//           onClick={() => setSidebarOpen(false)}
-//         />
-//       )}
-
-//       {/* Main area */}
-//       <main className="flex-1 flex flex-col relative">
-//         {/* Top bar */}
-//         <div className="flex items-center justify-between px-6 py-4 border-b" style={{ borderColor: isDark ? "rgba(255,255,255,0.1)" : "rgba(0,0,0,0.1)" }}>
-//           <div className="flex items-center gap-4">
-//             <button
-//               onClick={() => setSidebarOpen(true)}
-//               className="md:hidden p-2 rounded-lg hover:bg-black/5"
-//             >
-//               <Menu size={20} />
-//             </button>
-
-//           </div>
-//           <div className="flex items-center gap-3">
-//             <select
-//               value={selectedLanguage}
-//               onChange={(e) => setSelectedLanguage(e.target.value)}
-//               className={`rounded-full bg-transparent px-3 py-1 text-sm focus:outline-none border ${
-//                 isDark
-//                   ? "text-white/70 border-white/10"
-//                   : "text-gray-800 border-black/10"
-//               }`}
-//             >
-//               {AVAILABLE_LANGUAGES.map((lang) => (
-//                 <option key={lang} value={lang}>
-//                   {lang}
-//                 </option>
-//               ))}
-//             </select>
-//             <button
-//               onClick={toggleTheme}
-//               className={`flex items-center justify-center rounded-full border px-2.5 py-1.5 text-xs transition-colors ${
-//                 isDark
-//                   ? "border-white/15 text-white/80 hover:bg-white/10"
-//                   : "border-black/10 text-gray-800 hover:bg-black/5"
-//               }`}
-//             >
-//               {isDark ? <Sun size={16} /> : <Moon size={16} />}
-//             </button>
-//           </div>
-//         </div>
-
-//         {/* Chat area */}
-//         <div className="flex-1 overflow-y-auto px-6 py-8">
-//           {showWelcome && !currentChat ? (
-//             <div className="flex flex-col items-center justify-center h-full text-center">
-//               <div className="mb-8">
-//                 <Sparkles size={32} color={ACCENT} className="mx-auto mb-4" />
-//                 <h1 className={`text-4xl md:text-6xl font-light mb-2 ${textColor}`}>
-//                   {greeting}, {userName}
-//                 </h1>
-//                 <p className={`text-lg ${isDark ? "text-white/60" : "text-gray-600"}`}>
-//                   {currentDate}
-//                 </p>
-//               </div>
-//               <p className={`text-base mb-8 ${isDark ? "text-white/60" : "text-gray-600"}`}>
-//                 How can I help you today?
-//               </p>
-//               <div className="grid grid-cols-1 md:grid-cols-2 gap-3 max-w-2xl w-full mb-8">
-//                 {SUGGESTED_PROMPTS.map((prompt) => (
-//                   <button
-//                     key={prompt}
-//                     onClick={() => {
-//                       setInputMessage(prompt);
-//                       createNewChat();
-//                     }}
-//                     className={`px-6 py-3 rounded-xl border text-left transition ${
-//                       isDark
-//                         ? "border-white/10 hover:border-white/20 hover:bg-white/5"
-//                         : "border-black/10 hover:border-black/20 hover:bg-black/5"
-//                     }`}
-//                   >
-//                     {prompt}
-//                   </button>
-//                 ))}
-//               </div>
-//             </div>
-//           ) : (
-//             <div className="max-w-4xl mx-auto">
-//               {messages.map((message, index) => (
-//                 <MessageBubble
-//                   key={index}
-//                   message={message}
-//                   isDark={isDark}
-//                   onCodeBlockClick={handleCodeBlockClick}
-//                 />
-//               ))}
-//               {isLoading && (
-//                 <div className="flex items-center gap-2 text-white/60 mb-6">
-//                   <div className="flex gap-1">
-//                     <div className="w-2 h-2 bg-orange-500 rounded-full animate-bounce" style={{ animationDelay: "0ms" }} />
-//                     <div className="w-2 h-2 bg-orange-500 rounded-full animate-bounce" style={{ animationDelay: "150ms" }} />
-//                     <div className="w-2 h-2 bg-orange-500 rounded-full animate-bounce" style={{ animationDelay: "300ms" }} />
-//                   </div>
-//                   <span>Generating code...</span>
-//                 </div>
-//               )}
-//               {codePanelData && codePanelData.codeBlocks.length > 0 && !codePanelOpen && (
-//                 <div className="max-w-4xl mx-auto mb-6">
-//                   <button
-//                     onClick={() => setCodePanelOpen(true)}
-//                     className="w-full px-6 py-4 rounded-xl border border-orange-500/30 bg-orange-500/10 hover:bg-orange-500/20 text-orange-300 flex items-center justify-between transition"
-//                   >
-//                     <div className="flex items-center gap-3">
-//                       <Code size={20} />
-//                       <div className="text-left">
-//                         <div className="font-medium">View Generated Code</div>
-//                         <div className="text-sm opacity-70">
-//                           {codePanelData.codeBlocks.length} code block{codePanelData.codeBlocks.length > 1 ? "s" : ""} available
-//                         </div>
-//                       </div>
-//                     </div>
-//                     <ChevronRight size={20} />
-//                   </button>
-//                 </div>
-//               )}
-//               <div ref={messagesEndRef} />
-//             </div>
-//           )}
-//         </div>
-
-//         {/* Input area */}
-//         <div className="px-6 py-4 border-t" style={{ borderColor: isDark ? "rgba(255,255,255,0.1)" : "rgba(0,0,0,0.1)" }}>
-//           <div className="max-w-4xl mx-auto">
-//             <div
-//               className={`w-full rounded-3xl border p-4 text-left shadow-[0_10px_60px_rgba(0,0,0,0.4)] backdrop-blur bg-gradient-to-b ${
-//                 isDark
-//                   ? "from-white/5 to-transparent border-white/10"
-//                   : "from-white to-gray-100 border-black/10"
-//               }`}
-//             >
-//               <div className="flex items-end gap-2">
-//                 <textarea
-//                   ref={inputRef}
-//                   value={inputMessage}
-//                   onChange={(e) => setInputMessage(e.target.value)}
-//                   onKeyPress={handleKeyPress}
-//                   placeholder="How can I help you today?"
-//                   rows={1}
-//                   disabled={isLoading}
-//                   className={`flex-1 resize-none bg-transparent text-lg focus:outline-none ${
-//                     isDark
-//                       ? "text-white placeholder-white/30"
-//                       : "text-gray-900 placeholder-gray-400"
-//                   }`}
-//                   style={{ minHeight: "24px", maxHeight: "200px" }}
-//                 />
-//                 <button
-//                   onClick={sendMessage}
-//                   disabled={!inputMessage.trim() || isLoading}
-//                   className={`flex items-center justify-center rounded-full p-3 transition ${
-//                     inputMessage.trim() && !isLoading
-//                       ? "bg-orange-500 text-white hover:bg-orange-600"
-//                       : "bg-white/10 text-white/30 cursor-not-allowed"
-//                   }`}
-//                 >
-//                   <ArrowUp size={18} />
-//                 </button>
-//               </div>
-//               <div
-//                 className={`mt-3 flex items-center justify-between text-xs ${
-//                   isDark ? "text-white/40" : "text-gray-500"
-//                 }`}
-//               >
-//                 <div className="flex gap-2">
-//                   <span className="px-2 py-1 rounded-full bg-white/5">{selectedLanguage}</span>
-//                 </div>
-//                 <p className="text-xs">CodeSeed may make mistakes. Please verify important information.</p>
-//               </div>
-//             </div>
-//           </div>
-//         </div>
-//       </main>
-
-//       {/* Code Panel */}
-//       <CodePanel
-//         codeBlocks={codePanelData?.codeBlocks || []}
-//         language={selectedLanguage}
-//         isOpen={codePanelOpen}
-//         onClose={() => setCodePanelOpen(false)}
-//         isDark={isDark}
-//         onLanguageChange={setSelectedLanguage}
-//         availableLanguages={AVAILABLE_LANGUAGES}
-//       />
-
-//       {/* Settings Modal */}
-//       <SettingsModal
-//         isOpen={settingsOpen}
-//         onClose={() => setSettingsOpen(false)}
-//         user={user}
-//       />
-//     </div>
-//   );
-// }
-
-// export default Chat;
-
-import React, { useState } from "react";
-import NavBar from "../components/Navbar";
-import Select from "react-select";
+import React, { useEffect, useMemo, useState, useContext, useRef } from "react";
+import { useNavigate } from "react-router-dom";
+import { toast } from "react-toastify";
+import {
+  ArrowUp,
+  Box,
+  Code,
+  Clock,
+  FolderClosed,
+  MessageSquarePlus,
+  PanelsTopLeft,
+  Plus,
+  Sparkles,
+  User,
+  Sun,
+  Moon,
+  Menu,
+  X,
+  Trash2,
+  Edit2,
+  ChevronRight,
+  Settings,
+  LogOut,
+} from "lucide-react";
+import { format } from "date-fns";
+import { AppContext } from "../context/AppContext";
+import MessageBubble from "../components/MessageBubble";
+import CodePanel from "../components/CodePanel";
+import SettingsModal from "../components/SettingsModal";
 import Editor from "@monaco-editor/react";
-import * as monaco from "monaco-editor";
 
-/* ============================
-   VS CODE–LIKE LIGHT GRAY THEME
-============================= */
-const defineLightGrayTheme = () => {
-  monaco.editor.defineTheme("vscode-light-gray", {
-    base: "vs",
-    inherit: true,
-    rules: [
-      { token: "comment", foreground: "6A737D", fontStyle: "italic" },
-      { token: "keyword", foreground: "0000FF" },
-      { token: "string", foreground: "A31515" },
-      { token: "number", foreground: "098658" },
-      { token: "type.identifier", foreground: "267F99" },
-    ],
-    colors: {
-      "editor.background": "#F5F5F5", // ✅ VS Code light gray
-      "editor.foreground": "#333333",
-      "editorLineNumber.foreground": "#999999",
-      "editorLineNumber.activeForeground": "#000000",
-      "editorCursor.foreground": "#000000",
-      "editor.selectionBackground": "#ADD6FF",
-      "editor.lineHighlightBackground": "#EAEAEA",
-      "editorIndentGuide.background": "#D3D3D3",
-      "editorIndentGuide.activeBackground": "#939393",
-    },
-  });
-};
+const PRIMARY_BG = "#050505";
+const PANEL_BG = "#0c0d0f";
+const ACCENT = "#f4a261";
 
-const Chat = () => {
-  const backendUrl = import.meta.env.VITE_BACKEND_URL;
-  const [outputScreen, setOutputScreen] = useState(true);
-  const [tab, setTab] = useState(1);
+const AVAILABLE_LANGUAGES = [
+  "HTML + CSS",
+  "HTML + Tailwind CSS",
+  "HTML + Bootstrap",
+  "HTML + CSS + JS",
+  "HTML + Tailwind + Bootstrap",
+  "React + Tailwind",
+  "Vue + Tailwind",
+  "Angular + Bootstrap",
+  "Next.js + Tailwind",
+];
+
+const SUGGESTED_PROMPTS = [
+  "Create a login form",
+  "Build a pricing card",
+  "Design a navigation bar",
+  "Make a button component",
+  "Create a modal dialog",
+];
+
+function Chat() {
+  const navigate = useNavigate();
+  const { isDark, setIsDark } = useContext(AppContext);
+  const [fadeIn, setFadeIn] = useState(false);
+  const [user, setUser] = useState(null);
+  const [userName, setUserName] = useState("there");
+  const [sidebarOpen, setSidebarOpen] = useState(true);
+  const [chats, setChats] = useState([]);
+  const [currentChat, setCurrentChat] = useState(null);
+  const [messages, setMessages] = useState([]);
+  const [inputMessage, setInputMessage] = useState("");
+  const [selectedLanguage, setSelectedLanguage] = useState("HTML + CSS");
   const [isLoading, setIsLoading] = useState(false);
+  const [codePanelOpen, setCodePanelOpen] = useState(false);
+  const [codePanelData, setCodePanelData] = useState(null);
+  const [settingsOpen, setSettingsOpen] = useState(false);
+  const [showWelcome, setShowWelcome] = useState(true);
+  const [editingChatId, setEditingChatId] = useState(null);
+  const [editingTitle, setEditingTitle] = useState("");
+  const messagesEndRef = useRef(null);
+  const inputRef = useRef(null);
+  const backendUrl = import.meta.env.VITE_BACKEND_URL;
+
+  // Code generation states
+  const [outputScreen, setOutputScreen] = useState(false);
+  const [tab, setTab] = useState(1);
   const [generatedCode, setGeneratedCode] = useState("");
-  const [selectedFramework, setSelectedFramework] = useState();
+  const [selectedFramework, setSelectedFramework] = useState("html-css");
   const [description, setDescription] = useState("");
 
-  async function getResponse() {
+  const greeting = useMemo(() => {
+    const hour = new Date().getHours();
+    if (hour < 12) return "Good morning";
+    if (hour < 17) return "Good afternoon";
+    return "Good evening";
+  }, []);
+
+  const currentDate = useMemo(() => {
+    return format(new Date(), "EEEE, MMMM d, yyyy");
+  }, []);
+
+  useEffect(() => {
+    const storedUser = localStorage.getItem("user");
+    if (!storedUser) {
+      navigate("/");
+      return;
+    }
+
+    try {
+      const parsedUser = JSON.parse(storedUser);
+      setUser(parsedUser);
+      const fallbackName =
+        parsedUser?.username ||
+        parsedUser?.email?.split("@")[0] ||
+        "friend";
+      setUserName(fallbackName);
+      setTimeout(() => setFadeIn(true), 150);
+      loadChats();
+    } catch (error) {
+      console.error("Unable to parse stored user:", error);
+      navigate("/");
+    }
+  }, [navigate]);
+
+  useEffect(() => {
+    scrollToBottom();
+  }, [messages]);
+
+  const scrollToBottom = () => {
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  };
+
+  const loadChats = async () => {
+    try {
+      const response = await fetch(`${backendUrl}/api/chat`, {
+        credentials: "include",
+      });
+      if (response.ok) {
+        const data = await response.json();
+        if (data.success) {
+          setChats(data.chats || []);
+        }
+      }
+    } catch (error) {
+      console.error("Error loading chats:", error);
+    }
+  };
+
+  const createNewChat = async () => {
+    try {
+      const response = await fetch(`${backendUrl}/api/chat`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify({
+          title: "New Chat",
+          selectedLanguage,
+        }),
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        if (data.success) {
+          const newChat = data.chat;
+          setCurrentChat(newChat);
+          setMessages([]);
+          setShowWelcome(false);
+          setCodePanelOpen(false);
+          setOutputScreen(false);
+          loadChats();
+          inputRef.current?.focus();
+          return newChat;
+        }
+      }
+    } catch (error) {
+      console.error("Error creating chat:", error);
+      toast.error("Failed to create new chat");
+    }
+  };
+
+  const loadChat = async (chatId) => {
+    try {
+      const response = await fetch(`${backendUrl}/api/chat/${chatId}`, {
+        credentials: "include",
+      });
+      if (response.ok) {
+        const data = await response.json();
+        if (data.success) {
+          setCurrentChat(data.chat);
+          setMessages(data.chat.messages || []);
+          setSelectedLanguage(data.chat.selectedLanguage || "HTML + CSS");
+          setShowWelcome(false);
+          setCodePanelOpen(false);
+          setOutputScreen(false);
+        }
+      }
+    } catch (error) {
+      console.error("Error loading chat:", error);
+      toast.error("Failed to load chat");
+    }
+  };
+
+  const sendMessage = async () => {
+    if (!inputMessage.trim() || isLoading) return;
+
+    const userMessage = {
+      role: "user",
+      content: inputMessage.trim(),
+      timestamp: new Date(),
+    };
+
+    let chatId;
+    if (!currentChat) {
+      const newChat = await createNewChat();
+      if (!newChat) {
+        toast.error("Failed to create new chat");
+        return;
+      }
+      chatId = newChat._id;
+    } else {
+      chatId = currentChat._id;
+    }
+
+    setMessages((prev) => [...prev, userMessage]);
+    setInputMessage("");
+    setIsLoading(true);
+
+    try {
+      if (!chatId) {
+        toast.error("Chat not initialized");
+        return;
+      }
+
+      const response = await fetch(`${backendUrl}/api/chat/${chatId}/message`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify({
+          message: userMessage.content,
+          selectedLanguage,
+        }),
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        if (data.success) {
+          setMessages((prev) => [...prev, data.message]);
+          if (data.chat?.title && data.chat.title !== currentChat?.title) {
+            setCurrentChat((prev) => ({ ...prev, title: data.chat.title }));
+            loadChats();
+          }
+        }
+      } else {
+        const errorData = await response.json();
+        toast.error(errorData.message || "Failed to send message");
+      }
+    } catch (error) {
+      console.error("Error sending message:", error);
+      toast.error("Failed to send message");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // Code generation function
+  async function generateCode() {
     if (!description.trim()) {
-      alert("Please describe your component");
+      toast.error("Please describe your component");
       return;
     }
 
@@ -816,14 +282,15 @@ const Chat = () => {
           setGeneratedCode(data.code);
           setOutputScreen(true);
           setTab(1);
+          toast.success("Code generated successfully!");
         }
       } else {
         const error = await response.json();
-        alert("Error: " + (error.message || "Failed to generate code"));
+        toast.error("Error: " + (error.message || "Failed to generate code"));
       }
     } catch (error) {
       console.error("Error:", error);
-      alert("Error: " + error.message);
+      toast.error("Error: " + error.message);
     } finally {
       setIsLoading(false);
     }
@@ -850,162 +317,672 @@ const Chat = () => {
     };
     return languageMap[value] || "html";
   }
+
+  const handleCodeBlockClick = (code, language) => {
+    setCodePanelData({
+      codeBlocks: [{ code, language }],
+      language: selectedLanguage,
+    });
+    setCodePanelOpen(true);
+  };
+
+  const deleteChat = async (chatId, e) => {
+    e.stopPropagation();
+    if (!window.confirm("Are you sure you want to delete this chat?")) return;
+
+    try {
+      const response = await fetch(`${backendUrl}/api/chat/${chatId}`, {
+        method: "DELETE",
+        credentials: "include",
+      });
+
+      if (response.ok) {
+        if (currentChat?._id === chatId) {
+          setCurrentChat(null);
+          setMessages([]);
+          setShowWelcome(true);
+        }
+        loadChats();
+        toast.success("Chat deleted");
+      }
+    } catch (error) {
+      console.error("Error deleting chat:", error);
+      toast.error("Failed to delete chat");
+    }
+  };
+
+  const updateChatTitle = async (chatId, newTitle) => {
+    try {
+      const response = await fetch(`${backendUrl}/api/chat/${chatId}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify({ title: newTitle }),
+      });
+
+      if (response.ok) {
+        loadChats();
+        if (currentChat?._id === chatId) {
+          setCurrentChat((prev) => ({ ...prev, title: newTitle }));
+        }
+      }
+    } catch (error) {
+      console.error("Error updating chat:", error);
+    }
+  };
+
+  const handleLogout = async () => {
+    try {
+      const res = await fetch(`${backendUrl}/api/auth/logout`, {
+        method: "POST",
+        credentials: "include",
+      });
+      if (res.ok) {
+        localStorage.removeItem("user");
+        localStorage.removeItem("pendingVerifyEmail");
+        navigate("/", { replace: true });
+        toast.success("Logged out");
+      }
+    } catch (error) {
+      console.error("Logout error:", error);
+      localStorage.removeItem("user");
+      navigate("/", { replace: true });
+    }
+  };
+
+  const handleKeyPress = (e) => {
+    if (e.key === "Enter" && !e.shiftKey) {
+      e.preventDefault();
+      sendMessage();
+    }
+  };
+
+  const textColor = isDark ? "text-white" : "text-gray-900";
+  const bgMain = isDark ? PRIMARY_BG : "#f5f5f7";
+  const bgPanel = isDark ? PANEL_BG : "#ffffff";
+  const toggleTheme = () => setIsDark((prev) => !prev);
+
+  useEffect(() => {
+    if (messages.length > 0) {
+      const lastMessage = messages[messages.length - 1];
+      if (lastMessage?.role === "assistant") {
+        if (lastMessage?.codeBlocks?.length > 0) {
+          setCodePanelData({
+            codeBlocks: lastMessage.codeBlocks,
+            language: selectedLanguage,
+          });
+        } else {
+          const codeBlockRegex = /```(\w+)?\n([\s\S]*?)```/g;
+          const codeBlocks = [];
+          let match;
+          while ((match = codeBlockRegex.exec(lastMessage.content)) !== null) {
+            codeBlocks.push({
+              language: match[1] || "text",
+              code: match[2].trim(),
+              description: "",
+            });
+          }
+          if (codeBlocks.length > 0) {
+            setCodePanelData({
+              codeBlocks,
+              language: selectedLanguage,
+            });
+          }
+        }
+      }
+    }
+  }, [messages, selectedLanguage]);
+
   return (
-    <>
-      <NavBar />
-
-      <div className="flex px-[50px] mt-10 justify-between gap-5">
-        {/* LEFT PANEL */}
-        <div className="left w-[50%] h-[80vh]">
-          <h3 className="font-semibold text-xl text-blue-500">
-            AI Component Generator
-          </h3>
-
-          <p className="text-gray-600">
-            Describe your component and let AI code for you!
-          </p>
-
-          <p className="text-xl font-bold mt-3">Framework</p>
-          <Select 
-            className="mt-3" 
-            options={[
-              { value: "html-css", label: "HTML + CSS" },
-              { value: "html-tailwind", label: "HTML + Tailwind CSS" },
-              { value: "html-bootsrap", label: "HTML + Bootstrap" },
-              { value: "html-css-js", label: "HTML + JavaScript" },
-              { value: "html-tailwind-bootsrap", label: "HTML + Tailwind + Bootstrap" },
-            ]}
-            value={{ value: selectedFramework, label: getFrameworkLabel(selectedFramework) }}
-            onChange={(option) => setSelectedFramework(option.value)}
-          />
-
-          <p className="text-xl mt-5 font-semibold text-gray-700">
-            Describe Your Component
-          </p>
-
-          <textarea
-
-            className="w-full border-none mt-2 rounded-xl bg-gray-100 min-h-[150px] p-3"
-            placeholder="Describe your component in detail..."
-            value={description}
-            onChange={(e) => setDescription(e.target.value)}
-          />
-
-          <div className="flex items-center justify-between mt-4">
-            <p className="text-gray-600">Click Generate to create code</p>
-
-            <button 
-              onClick={getResponse}
-              disabled={isLoading}
-              className="font-medium px-5 py-2 rounded-xl bg-blue-500 text-white hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed"
+    <div
+      className={`flex min-h-screen transition-opacity duration-500 ${
+        fadeIn ? "opacity-100" : "opacity-0"
+      } ${textColor}`}
+      style={{ backgroundColor: bgMain }}
+    >
+      {/* Sidebar */}
+      <aside
+        className={`${
+          sidebarOpen ? "translate-x-0" : "-translate-x-full"
+        } md:translate-x-0 fixed md:static inset-y-0 left-0 z-30 flex flex-col justify-between w-72 px-4 py-6 border-r transition-transform duration-300 ${
+          isDark ? "border-white/5" : "border-black/5"
+        }`}
+        style={{ backgroundColor: bgPanel }}
+      >
+        <div className="flex-1 overflow-hidden flex flex-col">
+          <div className="flex items-center justify-between mb-6">
+            <button
+              className={`flex items-center gap-2 rounded-full border px-4 py-2 text-sm hover:border-opacity-70 transition-colors ${
+                isDark
+                  ? "border-white/10 text-white/80"
+                  : "border-black/10 text-gray-800"
+              }`}
             >
-              {isLoading ? "Generating..." : "Generate"} &nbsp;
-              <i className="fa-solid fa-code"></i>
+              <PanelsTopLeft size={16} /> CodeSeed
+            </button>
+            <button
+              onClick={() => setSidebarOpen(false)}
+              className="md:hidden p-2 rounded-lg hover:bg-black/5"
+            >
+              <X size={18} />
+            </button>
+          </div>
+
+          <button
+            onClick={createNewChat}
+            className={`w-full flex items-center justify-center gap-2 rounded-2xl py-3 text-sm font-medium transition mb-6 ${
+              isDark ? "bg-white/5 hover:bg-white/10" : "bg-black text-white hover:bg-gray-900"
+            }`}
+          >
+            <Plus size={16} /> New chat
+          </button>
+
+          <nav
+            className={`space-y-2 text-sm mb-6 ${
+              isDark ? "text-white/70" : "text-gray-700"
+            }`}
+          >
+            {[
+              { icon: MessageSquarePlus, label: "Chats" },
+              { icon: FolderClosed, label: "Projects" },
+              { icon: Box, label: "Artifacts" },
+              { icon: Code, label: "Code" },
+            ].map((item) => (
+              <button
+                key={item.label}
+                className={`flex w-full items-center gap-3 rounded-xl px-3 py-2 hover:bg-black/5 ${
+                  isDark ? "hover:bg-white/5" : ""
+                }`}
+              >
+                <item.icon size={16} />
+                {item.label}
+              </button>
+            ))}
+          </nav>
+
+          <div className="flex-1 overflow-hidden flex flex-col">
+            <div className="text-xs uppercase tracking-widest text-white/50 mb-4">Recents</div>
+            <div
+              className={`flex-1 overflow-y-auto space-y-1 pr-1 text-sm custom-scroll ${
+                isDark ? "text-white/70" : "text-gray-700"
+              }`}
+            >
+              {chats.map((chat) => (
+                <div
+                  key={chat._id}
+                  className={`group relative rounded-xl px-3 py-2 cursor-pointer transition ${
+                    currentChat?._id === chat._id
+                      ? isDark
+                        ? "bg-white/10"
+                        : "bg-black/10"
+                      : "hover:bg-white/5"
+                  }`}
+                  onClick={() => loadChat(chat._id)}
+                >
+                  {editingChatId === chat._id ? (
+                    <input
+                      value={editingTitle}
+                      onChange={(e) => setEditingTitle(e.target.value)}
+                      onBlur={() => {
+                        if (editingTitle.trim()) {
+                          updateChatTitle(chat._id, editingTitle.trim());
+                        }
+                        setEditingChatId(null);
+                      }}
+                      onKeyPress={(e) => {
+                        if (e.key === "Enter") {
+                          if (editingTitle.trim()) {
+                            updateChatTitle(chat._id, editingTitle.trim());
+                          }
+                          setEditingChatId(null);
+                        }
+                      }}
+                      className="w-full bg-transparent border-none outline-none"
+                      autoFocus
+                      onClick={(e) => e.stopPropagation()}
+                    />
+                  ) : (
+                    <>
+                      <div className="truncate">{chat.title}</div>
+                      <div className="text-xs opacity-50 mt-1">
+                        {format(new Date(chat.updatedAt), "MMM d")}
+                      </div>
+                      <div className="absolute right-2 top-2 opacity-0 group-hover:opacity-100 flex gap-1">
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setEditingChatId(chat._id);
+                            setEditingTitle(chat.title);
+                          }}
+                          className="p-1 rounded hover:bg-white/10"
+                        >
+                          <Edit2 size={12} />
+                        </button>
+                        <button
+                          onClick={(e) => deleteChat(chat._id, e)}
+                          className="p-1 rounded hover:bg-red-500/20"
+                        >
+                          <Trash2 size={12} />
+                        </button>
+                      </div>
+                    </>
+                  )}
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+
+        <div
+          className={`space-y-3 text-sm border-t pt-4 ${
+            isDark ? "border-white/10" : "border-black/10"
+          }`}
+        >
+          <div
+            className={`flex items-center gap-3 rounded-2xl px-3 py-2 ${
+              isDark ? "bg-white/5" : "bg-black/5"
+            }`}
+          >
+            <div
+              className={`flex h-9 w-9 items-center justify-center rounded-full ${
+                isDark ? "bg-white/10" : "bg-black/10"
+              }`}
+            >
+              <User size={16} />
+            </div>
+            <div className="flex-1 min-w-0">
+              <p className="text-sm font-medium truncate">{userName}</p>
+            </div>
+          </div>
+          <button
+            onClick={() => setSettingsOpen(true)}
+            className="w-full flex items-center gap-3 rounded-xl px-3 py-2 hover:bg-black/5 text-left"
+          >
+            <Settings size={16} />
+            Settings
+          </button>
+          <button
+            onClick={handleLogout}
+            className="w-full flex items-center gap-3 rounded-xl px-3 py-2 hover:bg-black/5 text-left text-red-400"
+          >
+            <LogOut size={16} />
+            Log out
+          </button>
+        </div>
+      </aside>
+
+      {sidebarOpen && (
+        <div
+          className="md:hidden fixed inset-0 bg-black/50 z-20"
+          onClick={() => setSidebarOpen(false)}
+        />
+      )}
+
+      {/* Main Content */}
+      <main className="flex-1 flex flex-col relative">
+        {/* Top bar */}
+        <div
+          className="flex items-center justify-between px-6 py-4 border-b"
+          style={{ borderColor: isDark ? "rgba(255,255,255,0.1)" : "rgba(0,0,0,0.1)" }}
+        >
+          <div className="flex items-center gap-4">
+            <button
+              onClick={() => setSidebarOpen(true)}
+              className="md:hidden p-2 rounded-lg hover:bg-black/5"
+            >
+              <Menu size={20} />
+            </button>
+          </div>
+          <div className="flex items-center gap-3">
+            <select
+              value={selectedLanguage}
+              onChange={(e) => setSelectedLanguage(e.target.value)}
+              className={`rounded-full bg-transparent px-3 py-1 text-sm focus:outline-none border ${
+                isDark
+                  ? "text-white/70 border-white/10"
+                  : "text-gray-800 border-black/10"
+              }`}
+            >
+              {AVAILABLE_LANGUAGES.map((lang) => (
+                <option key={lang} value={lang}>
+                  {lang}
+                </option>
+              ))}
+            </select>
+            <button
+              onClick={toggleTheme}
+              className={`flex items-center justify-center rounded-full border px-2.5 py-1.5 text-xs transition-colors ${
+                isDark
+                  ? "border-white/15 text-white/80 hover:bg-white/10"
+                  : "border-black/10 text-gray-800 hover:bg-black/5"
+              }`}
+            >
+              {isDark ? <Sun size={16} /> : <Moon size={16} />}
             </button>
           </div>
         </div>
 
-        {/* RIGHT PANEL */}
-        <div className="right w-[50%] h-[80vh] rounded-xl border">
-          {outputScreen ? (
-            <div className="codespace flex flex-col h-full">
-              <div className="top  w-full h-[60px] flex  items-center px-2 gap-1.5 ">
-                <button
-                  onClick={() => {
-                    setTab(1);
-                  }}
-                  className={`flex w-[50%] items-center justify-center font-semibold text-xl  py-2 bg-gray-300 rounded-xl hover:cursor-pointer hover:opacity-[.8] ${
-                    tab === 1 ? "bg-gray-400" : ""
-                  }`}
-                >
-                  Code
-                </button>
-                <button
-                  onClick={() => {
-                    setTab(2);
-                  }}
-                  className={`flex w-[50%] items-center justify-center font-semibold text-xl  py-2 bg-gray-300 rounded-xl hover:cursor-pointer hover:opacity-[.8] ${
-                    tab === 2 ? "bg-gray-400" : ""
-                  }`}
-                >
-                  Preview
-                </button>
-              </div>
-              <div className="top2 w-full h-[60px] flex justify-between items-center px-2 gap-1.5">
-                <div className="left">
-                  <p className="font-semibold ml-5">Code Editor</p>
-                </div>
-                <div className="right flex justify-center items-center gap-2">
-                  {tab === 1 ? (
-                    <>
-                      <button className="text-xl rounded-xl px-3 py-2 border border-zinc-600 hover:cursor-pointer hover:bg-gray-200">
-                        <i className="fa-regular fa-copy"></i>
-                      </button>
-                      <button className="text-xl rounded-xl px-3 py-2 border border-zinc-600 hover:cursor-pointer hover:bg-gray-200">
-                        <i className="fa-solid fa-file-export"></i>
-                      </button>
-                    </>
-                  ) : (
-                    <>
-                      <button className="text-xl rounded-xl px-3 py-2 border border-zinc-600 hover:cursor-pointer hover:bg-gray-200">
-                        <svg
-                          xmlns="http://www.w3.org/2000/svg"
-                          height="26px"
-                          viewBox="0 -960 960 960"
-                          width="24px"
-                          fill="#000000"
-                        >
-                          <path d="M200-120q-33 0-56.5-23.5T120-200v-560q0-33 23.5-56.5T200-840h280v80H200v560h560v-280h80v280q0 33-23.5 56.5T760-120H200Zm188-212-56-56 372-372H560v-80h280v280h-80v-144L388-332Z" />
-                        </svg>
-                      </button>
-                      <button className="text-xl rounded-xl px-3 py-2 border border-zinc-600 hover:cursor-pointer hover:bg-gray-200">
-                        <i class="fa-solid fa-arrows-rotate"></i>
-                      </button>
-                    </>
-                  )}
-                </div>
-              </div>
-              <div className="editor flex flex-1 w-full ">
-                {tab === 1 ? (
-                  <>
-                    <Editor
-                      height="100%"
-                      language={getLanguageFromFramework(selectedFramework)}
-                      value={generatedCode || "// Generated code will appear here"}
-                      theme="vs-light"
-                      options={{
-                        readOnly: false,
-                        wordWrap: "on",
-                        minimap: { enabled: false },
-                      }}
-                    />
-                  </>
-                ) : (
-                  <>
-                    <div className="preview w-full h-full bg-white p-4 overflow-auto">
-                      {generatedCode && (
-                        <iframe
-                          title="preview"
-                          srcDoc={generatedCode}
-                          sandbox="allow-scripts allow-same-origin"
-                          style={{ width: "100%", height: "100%", border: "none" }}
-                        />
-                      )}
+        {/* Split Content Area */}
+        <div className="flex-1 overflow-hidden flex gap-5 px-6 py-6">
+          {/* LEFT PANEL - Chat/Input or Code Description */}
+          <div className="left flex-1 overflow-y-auto">
+            {!outputScreen ? (
+              <>
+                {/* Chat Mode */}
+                {showWelcome && !currentChat ? (
+                  <div className="flex flex-col items-center justify-center h-full text-center">
+                    <div className="mb-8">
+                      <Sparkles size={32} color={ACCENT} className="mx-auto mb-4" />
+                      <h1 className={`text-4xl md:text-6xl font-light mb-2 ${textColor}`}>
+                        {greeting}, {userName}
+                      </h1>
+                      <p className={`text-lg ${isDark ? "text-white/60" : "text-gray-600"}`}>
+                        {currentDate}
+                      </p>
                     </div>
-                  </>
+                    <p className={`text-base mb-8 ${isDark ? "text-white/60" : "text-gray-600"}`}>
+                      How can I help you today?
+                    </p>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3 max-w-2xl w-full mb-8">
+                      {SUGGESTED_PROMPTS.map((prompt) => (
+                        <button
+                          key={prompt}
+                          onClick={() => {
+                            setInputMessage(prompt);
+                            createNewChat();
+                          }}
+                          className={`px-6 py-3 rounded-xl border text-left transition ${
+                            isDark
+                              ? "border-white/10 hover:border-white/20 hover:bg-white/5"
+                              : "border-black/10 hover:border-black/20 hover:bg-black/5"
+                          }`}
+                        >
+                          {prompt}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                ) : (
+                  <div className="max-w-4xl">
+                    {messages.map((message, index) => (
+                      <MessageBubble
+                        key={index}
+                        message={message}
+                        isDark={isDark}
+                        onCodeBlockClick={handleCodeBlockClick}
+                      />
+                    ))}
+                    {isLoading && (
+                      <div className="flex items-center gap-2 text-white/60 mb-6">
+                        <div className="flex gap-1">
+                          <div className="w-2 h-2 bg-orange-500 rounded-full animate-bounce" style={{ animationDelay: "0ms" }} />
+                          <div className="w-2 h-2 bg-orange-500 rounded-full animate-bounce" style={{ animationDelay: "150ms" }} />
+                          <div className="w-2 h-2 bg-orange-500 rounded-full animate-bounce" style={{ animationDelay: "300ms" }} />
+                        </div>
+                        <span>Generating code...</span>
+                      </div>
+                    )}
+                    {codePanelData && codePanelData.codeBlocks.length > 0 && !codePanelOpen && (
+                      <div className="mb-6">
+                        <button
+                          onClick={() => setCodePanelOpen(true)}
+                          className="w-full px-6 py-4 rounded-xl border border-orange-500/30 bg-orange-500/10 hover:bg-orange-500/20 text-orange-300 flex items-center justify-between transition"
+                        >
+                          <div className="flex items-center gap-3">
+                            <Code size={20} />
+                            <div className="text-left">
+                              <div className="font-medium">View Generated Code</div>
+                              <div className="text-sm opacity-70">
+                                {codePanelData.codeBlocks.length} code block{codePanelData.codeBlocks.length > 1 ? "s" : ""} available
+                              </div>
+                            </div>
+                          </div>
+                          <ChevronRight size={20} />
+                        </button>
+                      </div>
+                    )}
+                    <div ref={messagesEndRef} />
+                  </div>
                 )}
-              </div>
-            </div>
-          ) : (
-            <div className="flex flex-col items-center justify-center h-full text-gray-500">
-              <i className="fa-solid fa-code text-8xl"></i>
-              <p className="mt-4 text-xl">Your code will appear here</p>
+              </>
+            ) : (
+              <>
+                {/* Code Generation Mode - Left Panel */}
+                <div>
+                  <h3 className="font-semibold text-xl text-blue-500 mb-2">
+                    AI Component Generator
+                  </h3>
+                  <p className={`${isDark ? "text-white/70" : "text-gray-600"} mb-4`}>
+                    Describe your component and let AI code for you!
+                  </p>
+
+                  <p className="text-lg font-bold mt-6 mb-3">Framework</p>
+                  <select
+                    value={selectedFramework}
+                    onChange={(e) => setSelectedFramework(e.target.value)}
+                    className={`w-full px-4 py-2 rounded-lg border mb-6 ${
+                      isDark
+                        ? "bg-white/5 border-white/10 text-white"
+                        : "bg-white border-black/10 text-gray-900"
+                    }`}
+                  >
+                    <option value="html-css">HTML + CSS</option>
+                    <option value="html-tailwind">HTML + Tailwind CSS</option>
+                    <option value="html-bootsrap">HTML + Bootstrap</option>
+                    <option value="html-css-js">HTML + CSS + JS</option>
+                    <option value="html-tailwind-bootsrap">HTML + Tailwind + Bootstrap</option>
+                  </select>
+
+                  <p className="text-lg font-semibold mb-3">
+                    Describe Your Component
+                  </p>
+
+                  <textarea
+                    className={`w-full rounded-lg p-4 border min-h-[200px] resize-none ${
+                      isDark
+                        ? "bg-white/5 border-white/10 text-white placeholder-white/30"
+                        : "bg-white border-black/10 text-gray-900 placeholder-gray-400"
+                    }`}
+                    placeholder="Describe your component in detail..."
+                    value={description}
+                    onChange={(e) => setDescription(e.target.value)}
+                  />
+
+                  <div className="flex items-center justify-between mt-6">
+                    <p className={isDark ? "text-white/60" : "text-gray-600"}>
+                      Click Generate to create code
+                    </p>
+                    <button
+                      onClick={generateCode}
+                      disabled={isLoading}
+                      className="font-medium px-6 py-2 rounded-lg bg-blue-500 text-white hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                      {isLoading ? "Generating..." : "Generate"}
+                    </button>
+                  </div>
+                </div>
+              </>
+            )}
+          </div>
+
+          {/* RIGHT PANEL - Code/Preview */}
+          {outputScreen && (
+            <div className={`right flex-1 rounded-xl border overflow-hidden ${isDark ? "border-white/10" : "border-black/10"}`} style={{ backgroundColor: bgPanel }}>
+              {outputScreen ? (
+                <div className="codespace flex flex-col h-full">
+                  <div className="top w-full h-[60px] flex items-center px-4 gap-3 border-b" style={{ borderColor: isDark ? "rgba(255,255,255,0.1)" : "rgba(0,0,0,0.1)" }}>
+                    <button
+                      onClick={() => setTab(1)}
+                      className={`flex items-center justify-center font-semibold py-2 px-4 rounded-lg transition ${
+                        tab === 1
+                          ? isDark
+                            ? "bg-white/10"
+                            : "bg-black/10"
+                          : isDark
+                          ? "hover:bg-white/5"
+                          : "hover:bg-black/5"
+                      }`}
+                    >
+                      Code
+                    </button>
+                    <button
+                      onClick={() => setTab(2)}
+                      className={`flex items-center justify-center font-semibold py-2 px-4 rounded-lg transition ${
+                        tab === 2
+                          ? isDark
+                            ? "bg-white/10"
+                            : "bg-black/10"
+                          : isDark
+                          ? "hover:bg-white/5"
+                          : "hover:bg-black/5"
+                      }`}
+                    >
+                      Preview
+                    </button>
+                  </div>
+
+                  <div className="top2 w-full h-[60px] flex justify-between items-center px-4 border-b" style={{ borderColor: isDark ? "rgba(255,255,255,0.1)" : "rgba(0,0,0,0.1)" }}>
+                    <p className="font-semibold">Code Editor</p>
+                    <div className="flex items-center gap-2">
+                      {tab === 1 ? (
+                        <>
+                          <button
+                            onClick={() => {
+                              navigator.clipboard.writeText(generatedCode);
+                              toast.success("Code copied!");
+                            }}
+                            className={`text-lg rounded-lg px-3 py-2 border transition ${
+                              isDark
+                                ? "border-white/20 hover:bg-white/10"
+                                : "border-black/20 hover:bg-black/5"
+                            }`}
+                          >
+                            <i className="fa-regular fa-copy"></i>
+                          </button>
+                          <button
+                            onClick={() => {
+                              const element = document.createElement("a");
+                              element.setAttribute("href", "data:text/plain;charset=utf-8," + encodeURIComponent(generatedCode));
+                              element.setAttribute("download", "code.html");
+                              element.style.display = "none";
+                              document.body.appendChild(element);
+                              element.click();
+                              document.body.removeChild(element);
+                            }}
+                            className={`text-lg rounded-lg px-3 py-2 border transition ${
+                              isDark
+                                ? "border-white/20 hover:bg-white/10"
+                                : "border-black/20 hover:bg-black/5"
+                            }`}
+                          >
+                            <i className="fa-solid fa-file-export"></i>
+                          </button>
+                        </>
+                      ) : null}
+                    </div>
+                  </div>
+
+                  <div className="editor flex flex-1 w-full overflow-hidden">
+                    {tab === 1 ? (
+                      <Editor
+                        height="100%"
+                        language={getLanguageFromFramework(selectedFramework)}
+                        value={generatedCode || "// Generated code will appear here"}
+                        theme={isDark ? "vs-dark" : "vs-light"}
+                        options={{
+                          readOnly: false,
+                          wordWrap: "on",
+                          minimap: { enabled: false },
+                        }}
+                      />
+                    ) : (
+                      <div className={`preview w-full h-full overflow-auto ${isDark ? "bg-black/20" : "bg-white"}`}>
+                        {generatedCode && (
+                          <iframe
+                            title="preview"
+                            srcDoc={generatedCode}
+                            sandbox="allow-scripts allow-same-origin"
+                            style={{ width: "100%", height: "100%", border: "none" }}
+                          />
+                        )}
+                      </div>
+                    )}
+                  </div>
+                </div>
+              ) : (
+                <div className="flex flex-col items-center justify-center h-full text-center">
+                  <i className="fa-solid fa-code text-6xl opacity-50"></i>
+                  <p className="mt-4 opacity-70">Your code will appear here</p>
+                </div>
+              )}
             </div>
           )}
         </div>
-      </div>
-    </>
+
+        {/* Input area - Always visible for chat */}
+        {!outputScreen && (
+          <div className="px-6 py-4 border-t" style={{ borderColor: isDark ? "rgba(255,255,255,0.1)" : "rgba(0,0,0,0.1)" }}>
+            <div className="max-w-4xl mx-auto">
+              <div
+                className={`w-full rounded-3xl border p-4 text-left shadow-[0_10px_60px_rgba(0,0,0,0.4)] backdrop-blur bg-gradient-to-b ${
+                  isDark
+                    ? "from-white/5 to-transparent border-white/10"
+                    : "from-white to-gray-100 border-black/10"
+                }`}
+              >
+                <div className="flex items-end gap-2">
+                  <textarea
+                    ref={inputRef}
+                    value={inputMessage}
+                    onChange={(e) => setInputMessage(e.target.value)}
+                    onKeyPress={handleKeyPress}
+                    placeholder="How can I help you today?"
+                    rows={1}
+                    disabled={isLoading}
+                    className={`flex-1 resize-none bg-transparent text-lg focus:outline-none ${
+                      isDark
+                        ? "text-white placeholder-white/30"
+                        : "text-gray-900 placeholder-gray-400"
+                    }`}
+                    style={{ minHeight: "24px", maxHeight: "200px" }}
+                  />
+                  <button
+                    onClick={sendMessage}
+                    disabled={!inputMessage.trim() || isLoading}
+                    className={`flex items-center justify-center rounded-full p-3 transition ${
+                      inputMessage.trim() && !isLoading
+                        ? "bg-orange-500 text-white hover:bg-orange-600"
+                        : "bg-white/10 text-white/30 cursor-not-allowed"
+                    }`}
+                  >
+                    <ArrowUp size={18} />
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+      </main>
+
+      {/* Code Panel */}
+      <CodePanel
+        codeBlocks={codePanelData?.codeBlocks || []}
+        language={selectedLanguage}
+        isOpen={codePanelOpen}
+        onClose={() => setCodePanelOpen(false)}
+        isDark={isDark}
+        onLanguageChange={setSelectedLanguage}
+        availableLanguages={AVAILABLE_LANGUAGES}
+      />
+
+      {/* Settings Modal */}
+      <SettingsModal
+        isOpen={settingsOpen}
+        onClose={() => setSettingsOpen(false)}
+        user={user}
+      />
+    </div>
   );
-};
+}
 
 export default Chat;
