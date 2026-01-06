@@ -31,7 +31,7 @@ const CodePreviewPanel = ({
   const currentCode = currentCodeBlock?.code || "";
   const currentLanguage = currentCodeBlock?.language || "html";
 
-  const bgPanel = isDark ? "#0c0d0f" : "#ffffff";
+  const bgPanel = isDark ? "#1a1a1a" : "#ffffff";
   const bgSecondary = isDark ? "#141413" : "#f5f5f7";
   const textPrimary = isDark ? "text-white" : "text-gray-900";
   const textSecondary = isDark ? "text-white/60" : "text-gray-600";
@@ -82,7 +82,7 @@ const CodePreviewPanel = ({
           transform
           ${isOpen ? "translate-x-0" : "translate-x-full"}
           w-full lg:w-[50%] md:w-[55%] max-w-2xl
-          ${isDark ? "bg-[#0c0d0f]" : "bg-white"}
+          ${isDark ? "bg-[#1a1a1a]" : "bg-white"}
           border-l ${borderColor}
           shadow-2xl
         `}
@@ -313,7 +313,7 @@ const CodePreviewPanel = ({
             className={`
               flex items-center justify-between px-6 py-4
               border-b ${borderColor} shrink-0
-              ${isDark ? "bg-[#0c0d0f]" : "bg-white"}
+              ${isDark ? "bg-[#1a1a1a]" : "bg-white"}
             `}
           >
             <h2 className={`text-lg font-semibold ${textPrimary}`}>

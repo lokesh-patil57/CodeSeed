@@ -13,9 +13,10 @@ export default function NavBar({ isDark, toggleTheme, focusEmail }) {
       className={`sticky top-0 z-50 w-full backdrop-blur-md transition-colors duration-300
         ${
           isDark
-            ? "bg-black/60 border-b border-neutral-800/50 text-white"
+            ? "border-b border-neutral-800/50 text-white"
             : "bg-white/20 border-b border-neutral-200/30 text-gray-900"
         }`}
+      style={{ backgroundColor: isDark ? "rgba(26, 26, 26, 0.6)" : undefined }}
     >
       <div className="ml-5 mx-auto px-4 sm:px-6 lg:px-8">
         <nav>

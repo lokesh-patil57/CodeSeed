@@ -32,7 +32,7 @@ function AuthBox({
   return (
     <div
       className={`rounded-2xl ${wrapperBg} border p-5 w-3/4 relative shadow-xl`}
-      style={isDark ? { backgroundColor: "#141413" } : undefined}
+      style={isDark ? { backgroundColor: "#1a1a1a" } : undefined}
     >
       <div className="flex flex-col" style={{ width: "100%" }}>
         {/* Google Sign In Button */}
@@ -390,16 +390,18 @@ export default function LoginPreview() {
   return (
     <div
       className={`${
-        isDark ? "bg-black text-white" : "bg-white text-gray-900"
+        isDark ? "text-white" : "bg-white text-gray-900"
       } min-h-screen transition-colors duration-300`}
+      style={{ backgroundColor: isDark ? "#1a1a1a" : "#ffffff" }}
     >
       <NavBar isDark={isDark} toggleTheme={toggleTheme} focusEmail={focusEmail} />
 
       <div className={`flex min-h-screen w-full`}>
         <div
           className={`flex-1 flex flex-col justify-center px-6 sm:px-12 py-12 w-full ${
-            isDark ? "bg-black" : "bg-white"
+            isDark ? "text-white" : "bg-white"
           }`}
+          style={{ backgroundColor: isDark ? "#1a1a1a" : "#ffffff" }}
         >
           <div className="w-full">
             <h1
@@ -445,8 +447,9 @@ export default function LoginPreview() {
         {/* Right decorative panel */}
         <div
           className={`flex-1 relative overflow-hidden hidden md:flex items-center justify-center transition-colors duration-300 ${
-            isDark ? "bg-black" : "bg-white"
+            isDark ? "text-white" : "bg-white"
           }`}
+          style={{ backgroundColor: isDark ? "#1a1a1a" : "#ffffff" }}
         >
           <div
             aria-hidden="true"

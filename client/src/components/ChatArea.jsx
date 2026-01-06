@@ -28,6 +28,7 @@ const ChatArea = ({
   const textSecondary = isDark ? "text-white/60" : "text-gray-600";
   const accentColor = "#f4a261";
   const bgPanel = isDark ? "#141413" : "#f5f5f7";
+  const bgMain = isDark ? "#1a1a1a" : "#ffffff";
 
   // Transform messages to include artifact cards for code blocks
   const renderMessages = () => {
@@ -81,20 +82,20 @@ const ChatArea = ({
   return (
     <main
       className={`
-        flex-1 flex flex-col relative overflow-hidden
+        flex-1 flex flex-col relative overflow-hidden h-full
         transition-all duration-300
         ${rightPanelOpen ? "lg:pr-0" : ""}
       `}
     >
-      {/* Content area - scales based on right panel */}
+      {/* Messages area - scrollable only, flex-1 to take remaining space */}
       <div
         className={`
-          flex-1 overflow-y-auto overflow-x-hidden flex flex-col
+          flex-1 overflow-y-auto overflow-x-hidden
           transition-all duration-300 ease-out
         `}
       >
         {/* Welcome Screen or Chat Messages */}
-        <div className="flex-1 px-4 sm:px-6 md:px-8 py-8">
+        <div className="px-4 sm:px-6 md:px-8 py-8">
           {showWelcome ? (
             // Welcome Screen
             <div className="flex flex-col items-center justify-center min-h-full text-center space-y-8 py-12">
@@ -154,10 +155,11 @@ const ChatArea = ({
       {/* Input Area - Fixed at bottom */}
       <div
         className={`
-          px-4 sm:px-6 md:px-8 pb-6 shrink-0
+          px-4 sm:px-6 md:px-8 py-4 shrink-0 flex-shrink-0
           border-t
           ${isDark ? "border-white/5" : "border-black/5"}
         `}
+        style={{ backgroundColor: bgMain }}
       >
         <div className={`
           max-w-3xl mx-auto flex gap-3

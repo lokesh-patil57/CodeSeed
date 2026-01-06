@@ -4,8 +4,9 @@ export default function Footer({ isDark = true }) {
   return (
     <footer
       className={`w-full mt-12 ${
-        isDark ? "bg-black text-neutral-300" : "bg-white text-gray-700"
+        isDark ? "text-neutral-300" : "bg-white text-gray-700"
       }`}
+      style={{ backgroundColor: isDark ? "#1a1a1a" : "#ffffff" }}
       aria-labelledby="footer-heading"
     >
       {/* full-width wrapper so footer spans entire viewport */}

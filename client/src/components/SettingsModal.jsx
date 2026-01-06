@@ -43,7 +43,7 @@ const SettingsModal = ({ isOpen, onClose, user }) => {
     }
   };
 
-  const bgMain = isDark ? "#0c0d0f" : "#ffffff";
+  const bgMain = isDark ? "#1a1a1a" : "#ffffff";
   const bgSecondary = isDark ? "#141413" : "#f5f5f7";
   const textPrimary = isDark ? "text-white" : "text-gray-900";
   const textSecondary = isDark ? "text-white/70" : "text-gray-600";

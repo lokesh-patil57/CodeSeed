@@ -35,7 +35,7 @@ const EnhancedSidebar = ({
   const [editingChatId, setEditingChatId] = useState(null);
   const [editingTitle, setEditingTitle] = useState("");
 
-  const bgPanel = isDark ? "#0c0d0f" : "#ffffff";
+  const bgPanel = isDark ? "#1a1a1a" : "#ffffff";
   const bgSecondary = isDark ? "#141413" : "#f5f5f7";
   const textPrimary = isDark ? "text-white" : "text-gray-900";
   const textSecondary = isDark ? "text-white/60" : "text-gray-600";
@@ -261,7 +261,7 @@ const EnhancedSidebar = ({
                           <button
                             onClick={(e) => {
                               e.stopPropagation();
-                              onDeleteChat(chat._id);
+                              onDeleteChat(chat._id, e);
                             }}
                             className={`
                               p-1.5 rounded-lg transition

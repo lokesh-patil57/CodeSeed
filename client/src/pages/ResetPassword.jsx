@@ -100,7 +100,7 @@ const ResetPassword = () => {
     }
   };
 
-  const bgMain = isDark ? "#000000" : "#f5f5f7";
+  const bgMain = isDark ? "#1a1a1a" : "#f5f5f7";
 
   return (
     <div

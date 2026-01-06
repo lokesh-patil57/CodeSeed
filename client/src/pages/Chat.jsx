@@ -12,8 +12,8 @@ import EnhancedSidebar from "../components/EnhancedSidebar";
 import ChatArea from "../components/ChatArea";
 import CodePreviewPanel from "../components/CodePreviewPanel";
 
-const PRIMARY_BG = "#050505";
-const PANEL_BG = "#0c0d0f";
+const PRIMARY_BG = "#1a1a1a";
+const PANEL_BG = "#1a1a1a";
 const ACCENT = "#f4a261";
 
 const AVAILABLE_LANGUAGES = [
@@ -444,7 +444,7 @@ function Chat() {
 
   return (
     <div
-      className={`flex min-h-screen transition-opacity duration-500 ${
+      className={`flex h-screen transition-opacity duration-500 ${
         fadeIn ? "opacity-100" : "opacity-0"
       } ${textColor} overflow-hidden`}
       style={{ backgroundColor: bgMain }}
@@ -466,11 +466,11 @@ function Chat() {
       />
 
       {/* Main Content Area - Center - Always full width on mobile, flex on desktop */}
-      <div className="flex-1 flex flex-col relative w-full md:flex-1 overflow-hidden">
+      <div className="flex-1 flex flex-col relative w-full overflow-hidden h-screen">
         {/* Top Bar */}
         <div
-          className="flex items-center justify-between px-4 sm:px-6 py-4 border-b shrink-0"
-          style={{ borderColor: isDark ? "rgba(255,255,255,0.1)" : "rgba(0,0,0,0.1)" }}
+          className="sticky top-0 z-10 flex items-center justify-between px-4 sm:px-6 py-4 border-b shrink-0"
+          style={{ borderColor: isDark ? "rgba(255,255,255,0.1)" : "rgba(0,0,0,0.1)", backgroundColor: bgMain }}
         >
           <div className="flex items-center gap-4">
             <button
