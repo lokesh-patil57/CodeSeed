@@ -1,33 +1,16 @@
 import React, { useEffect, useMemo, useState, useContext, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
-import {
-  ArrowUp,
-  Box,
-  Code,
-  Clock,
-  FolderClosed,
-  MessageSquarePlus,
-  PanelsTopLeft,
-  Plus,
-  Sparkles,
-  User,
-  Sun,
-  Moon,
-  Menu,
-  X,
-  Trash2,
-  Edit2,
-  ChevronRight,
-  Settings,
-  LogOut,
-} from "lucide-react";
+import { Sun, Moon, ArrowUp, Code, ChevronRight, Sparkles, Menu, X } from "lucide-react";
 import { format } from "date-fns";
 import { AppContext } from "../context/AppContext";
 import MessageBubble from "../components/MessageBubble";
 import CodePanel from "../components/CodePanel";
 import SettingsModal from "../components/SettingsModal";
 import Editor from "@monaco-editor/react";
+import EnhancedSidebar from "../components/EnhancedSidebar";
+import ChatArea from "../components/ChatArea";
+import CodePreviewPanel from "../components/CodePreviewPanel";
 
 const PRIMARY_BG = "#050505";
 const PANEL_BG = "#0c0d0f";
@@ -66,22 +49,27 @@ function Chat() {
   const [inputMessage, setInputMessage] = useState("");
   const [selectedLanguage, setSelectedLanguage] = useState("HTML + CSS");
   const [isLoading, setIsLoading] = useState(false);
-  const [codePanelOpen, setCodePanelOpen] = useState(false);
-  const [codePanelData, setCodePanelData] = useState(null);
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [showWelcome, setShowWelcome] = useState(true);
   const [editingChatId, setEditingChatId] = useState(null);
   const [editingTitle, setEditingTitle] = useState("");
-  const messagesEndRef = useRef(null);
-  const inputRef = useRef(null);
-  const backendUrl = import.meta.env.VITE_BACKEND_URL;
-
-  // Code generation states
+  
+  // Three-pane state
+  const [rightPanelOpen, setRightPanelOpen] = useState(false);
+  const [selectedArtifact, setSelectedArtifact] = useState(null);
+  
+  // Legacy states (keep for backward compatibility)
   const [outputScreen, setOutputScreen] = useState(false);
   const [tab, setTab] = useState(1);
   const [generatedCode, setGeneratedCode] = useState("");
   const [selectedFramework, setSelectedFramework] = useState("html-css");
   const [description, setDescription] = useState("");
+  const [codePanelOpen, setCodePanelOpen] = useState(false);
+  const [codePanelData, setCodePanelData] = useState(null);
+
+  const messagesEndRef = useRef(null);
+  const inputRef = useRef(null);
+  const backendUrl = import.meta.env.VITE_BACKEND_URL;
 
   const greeting = useMemo(() => {
     const hour = new Date().getHours();
@@ -397,6 +385,27 @@ function Chat() {
     }
   };
 
+  const handleArtifactClick = (artifact) => {
+    setSelectedArtifact(artifact);
+    setRightPanelOpen(true);
+  };
+
+  const handleClosePanel = () => {
+    setRightPanelOpen(false);
+    setTimeout(() => setSelectedArtifact(null), 300); // Wait for animation
+  };
+
+  const createNewChatWithMessage = async (message) => {
+    setInputMessage(message);
+    const newChat = await createNewChat();
+    if (newChat && inputRef.current) {
+      inputRef.current.focus();
+    }
+  };
+
+  const handleDeleteChat = deleteChat;
+  const handleUpdateChatTitle = updateChatTitle;
+
   const textColor = isDark ? "text-white" : "text-gray-900";
   const bgMain = isDark ? PRIMARY_BG : "#f5f5f7";
   const bgPanel = isDark ? PANEL_BG : "#ffffff";
@@ -437,210 +446,53 @@ function Chat() {
     <div
       className={`flex min-h-screen transition-opacity duration-500 ${
         fadeIn ? "opacity-100" : "opacity-0"
-      } ${textColor}`}
+      } ${textColor} overflow-hidden`}
       style={{ backgroundColor: bgMain }}
     >
-      {/* Sidebar */}
-      <aside
-        className={`${
-          sidebarOpen ? "translate-x-0" : "-translate-x-full"
-        } md:translate-x-0 fixed md:static inset-y-0 left-0 z-30 flex flex-col justify-between w-72 px-4 py-6 border-r transition-transform duration-300 ${
-          isDark ? "border-white/5" : "border-black/5"
-        }`}
-        style={{ backgroundColor: bgPanel }}
-      >
-        <div className="flex-1 overflow-hidden flex flex-col">
-          <div className="flex items-center justify-between mb-6">
-            <button
-              className={`flex items-center gap-2 rounded-full border px-4 py-2 text-sm hover:border-opacity-70 transition-colors ${
-                isDark
-                  ? "border-white/10 text-white/80"
-                  : "border-black/10 text-gray-800"
-              }`}
-            >
-              <PanelsTopLeft size={16} /> CodeSeed
-            </button>
-            <button
-              onClick={() => setSidebarOpen(false)}
-              className="md:hidden p-2 rounded-lg hover:bg-black/5"
-            >
-              <X size={18} />
-            </button>
-          </div>
+      {/* Left Sidebar - Enhanced - Fixed on desktop, overlay on mobile */}
+      <EnhancedSidebar
+        isOpen={sidebarOpen}
+        onToggle={() => setSidebarOpen(!sidebarOpen)}
+        isDark={isDark}
+        userName={userName}
+        chats={chats}
+        currentChatId={currentChat?._id}
+        onNewChat={createNewChat}
+        onLoadChat={loadChat}
+        onDeleteChat={handleDeleteChat}
+        onUpdateChatTitle={handleUpdateChatTitle}
+        onSettingsOpen={() => setSettingsOpen(true)}
+        onLogout={handleLogout}
+      />
 
-          <button
-            onClick={createNewChat}
-            className={`w-full flex items-center justify-center gap-2 rounded-2xl py-3 text-sm font-medium transition mb-6 ${
-              isDark ? "bg-white/5 hover:bg-white/10" : "bg-black text-white hover:bg-gray-900"
-            }`}
-          >
-            <Plus size={16} /> New chat
-          </button>
-
-          <nav
-            className={`space-y-2 text-sm mb-6 ${
-              isDark ? "text-white/70" : "text-gray-700"
-            }`}
-          >
-            {[
-              { icon: MessageSquarePlus, label: "Chats" },
-              { icon: FolderClosed, label: "Projects" },
-              { icon: Box, label: "Artifacts" },
-              { icon: Code, label: "Code" },
-            ].map((item) => (
-              <button
-                key={item.label}
-                className={`flex w-full items-center gap-3 rounded-xl px-3 py-2 hover:bg-black/5 ${
-                  isDark ? "hover:bg-white/5" : ""
-                }`}
-              >
-                <item.icon size={16} />
-                {item.label}
-              </button>
-            ))}
-          </nav>
-
-          <div className="flex-1 overflow-hidden flex flex-col">
-            <div className="text-xs uppercase tracking-widest text-white/50 mb-4">Recents</div>
-            <div
-              className={`flex-1 overflow-y-auto space-y-1 pr-1 text-sm custom-scroll ${
-                isDark ? "text-white/70" : "text-gray-700"
-              }`}
-            >
-              {chats.map((chat) => (
-                <div
-                  key={chat._id}
-                  className={`group relative rounded-xl px-3 py-2 cursor-pointer transition ${
-                    currentChat?._id === chat._id
-                      ? isDark
-                        ? "bg-white/10"
-                        : "bg-black/10"
-                      : "hover:bg-white/5"
-                  }`}
-                  onClick={() => loadChat(chat._id)}
-                >
-                  {editingChatId === chat._id ? (
-                    <input
-                      value={editingTitle}
-                      onChange={(e) => setEditingTitle(e.target.value)}
-                      onBlur={() => {
-                        if (editingTitle.trim()) {
-                          updateChatTitle(chat._id, editingTitle.trim());
-                        }
-                        setEditingChatId(null);
-                      }}
-                      onKeyPress={(e) => {
-                        if (e.key === "Enter") {
-                          if (editingTitle.trim()) {
-                            updateChatTitle(chat._id, editingTitle.trim());
-                          }
-                          setEditingChatId(null);
-                        }
-                      }}
-                      className="w-full bg-transparent border-none outline-none"
-                      autoFocus
-                      onClick={(e) => e.stopPropagation()}
-                    />
-                  ) : (
-                    <>
-                      <div className="truncate">{chat.title}</div>
-                      <div className="text-xs opacity-50 mt-1">
-                        {format(new Date(chat.updatedAt), "MMM d")}
-                      </div>
-                      <div className="absolute right-2 top-2 opacity-0 group-hover:opacity-100 flex gap-1">
-                        <button
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            setEditingChatId(chat._id);
-                            setEditingTitle(chat.title);
-                          }}
-                          className="p-1 rounded hover:bg-white/10"
-                        >
-                          <Edit2 size={12} />
-                        </button>
-                        <button
-                          onClick={(e) => deleteChat(chat._id, e)}
-                          className="p-1 rounded hover:bg-red-500/20"
-                        >
-                          <Trash2 size={12} />
-                        </button>
-                      </div>
-                    </>
-                  )}
-                </div>
-              ))}
-            </div>
-          </div>
-        </div>
-
+      {/* Main Content Area - Center - Always full width on mobile, flex on desktop */}
+      <div className="flex-1 flex flex-col relative w-full md:flex-1 overflow-hidden">
+        {/* Top Bar */}
         <div
-          className={`space-y-3 text-sm border-t pt-4 ${
-            isDark ? "border-white/10" : "border-black/10"
-          }`}
-        >
-          <div
-            className={`flex items-center gap-3 rounded-2xl px-3 py-2 ${
-              isDark ? "bg-white/5" : "bg-black/5"
-            }`}
-          >
-            <div
-              className={`flex h-9 w-9 items-center justify-center rounded-full ${
-                isDark ? "bg-white/10" : "bg-black/10"
-              }`}
-            >
-              <User size={16} />
-            </div>
-            <div className="flex-1 min-w-0">
-              <p className="text-sm font-medium truncate">{userName}</p>
-            </div>
-          </div>
-          <button
-            onClick={() => setSettingsOpen(true)}
-            className="w-full flex items-center gap-3 rounded-xl px-3 py-2 hover:bg-black/5 text-left"
-          >
-            <Settings size={16} />
-            Settings
-          </button>
-          <button
-            onClick={handleLogout}
-            className="w-full flex items-center gap-3 rounded-xl px-3 py-2 hover:bg-black/5 text-left text-red-400"
-          >
-            <LogOut size={16} />
-            Log out
-          </button>
-        </div>
-      </aside>
-
-      {sidebarOpen && (
-        <div
-          className="md:hidden fixed inset-0 bg-black/50 z-20"
-          onClick={() => setSidebarOpen(false)}
-        />
-      )}
-
-      {/* Main Content */}
-      <main className="flex-1 flex flex-col relative">
-        {/* Top bar */}
-        <div
-          className="flex items-center justify-between px-6 py-4 border-b"
+          className="flex items-center justify-between px-4 sm:px-6 py-4 border-b shrink-0"
           style={{ borderColor: isDark ? "rgba(255,255,255,0.1)" : "rgba(0,0,0,0.1)" }}
         >
           <div className="flex items-center gap-4">
             <button
-              onClick={() => setSidebarOpen(true)}
-              className="md:hidden p-2 rounded-lg hover:bg-black/5"
+              onClick={() => setSidebarOpen(!sidebarOpen)}
+              className={`md:hidden p-2 rounded-lg transition ${isDark ? "hover:bg-white/10" : "hover:bg-black/5"}`}
+              title="Toggle sidebar"
             >
-              <Menu size={20} />
+              {sidebarOpen ? (
+                <X size={20} className={isDark ? "text-white/70" : "text-gray-600"} />
+              ) : (
+                <Menu size={20} className={isDark ? "text-white/70" : "text-gray-600"} />
+              )}
             </button>
           </div>
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2 sm:gap-3">
             <select
               value={selectedLanguage}
               onChange={(e) => setSelectedLanguage(e.target.value)}
-              className={`rounded-full bg-transparent px-3 py-1 text-sm focus:outline-none border ${
+              className={`rounded-lg px-2 sm:px-3 py-2 text-xs sm:text-sm focus:outline-none border ${
                 isDark
-                  ? "text-white/70 border-white/10"
-                  : "text-gray-800 border-black/10"
+                  ? "text-white/70 border-white/10 bg-white/5"
+                  : "text-gray-800 border-black/10 bg-black/5"
               }`}
             >
               {AVAILABLE_LANGUAGES.map((lang) => (
@@ -651,7 +503,7 @@ function Chat() {
             </select>
             <button
               onClick={toggleTheme}
-              className={`flex items-center justify-center rounded-full border px-2.5 py-1.5 text-xs transition-colors ${
+              className={`flex items-center justify-center rounded-lg border p-2 transition-colors ${
                 isDark
                   ? "border-white/15 text-white/80 hover:bg-white/10"
                   : "border-black/10 text-gray-800 hover:bg-black/5"
@@ -662,309 +514,39 @@ function Chat() {
           </div>
         </div>
 
-        {/* Split Content Area */}
-        <div className="flex-1 overflow-hidden flex gap-5 px-6 py-6">
-          {/* LEFT PANEL - Chat/Input or Code Description */}
-          <div className="left flex-1 overflow-y-auto">
-            {!outputScreen ? (
-              <>
-                {/* Chat Mode */}
-                {showWelcome && !currentChat ? (
-                  <div className="flex flex-col items-center justify-center h-full text-center">
-                    <div className="mb-8">
-                      <Sparkles size={32} color={ACCENT} className="mx-auto mb-4" />
-                      <h1 className={`text-4xl md:text-6xl font-light mb-2 ${textColor}`}>
-                        {greeting}, {userName}
-                      </h1>
-                      <p className={`text-lg ${isDark ? "text-white/60" : "text-gray-600"}`}>
-                        {currentDate}
-                      </p>
-                    </div>
-                    <p className={`text-base mb-8 ${isDark ? "text-white/60" : "text-gray-600"}`}>
-                      How can I help you today?
-                    </p>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3 max-w-2xl w-full mb-8">
-                      {SUGGESTED_PROMPTS.map((prompt) => (
-                        <button
-                          key={prompt}
-                          onClick={() => {
-                            setInputMessage(prompt);
-                            createNewChat();
-                          }}
-                          className={`px-6 py-3 rounded-xl border text-left transition ${
-                            isDark
-                              ? "border-white/10 hover:border-white/20 hover:bg-white/5"
-                              : "border-black/10 hover:border-black/20 hover:bg-black/5"
-                          }`}
-                        >
-                          {prompt}
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-                ) : (
-                  <div className="max-w-4xl">
-                    {messages.map((message, index) => (
-                      <MessageBubble
-                        key={index}
-                        message={message}
-                        isDark={isDark}
-                        onCodeBlockClick={handleCodeBlockClick}
-                      />
-                    ))}
-                    {isLoading && (
-                      <div className="flex items-center gap-2 text-white/60 mb-6">
-                        <div className="flex gap-1">
-                          <div className="w-2 h-2 bg-orange-500 rounded-full animate-bounce" style={{ animationDelay: "0ms" }} />
-                          <div className="w-2 h-2 bg-orange-500 rounded-full animate-bounce" style={{ animationDelay: "150ms" }} />
-                          <div className="w-2 h-2 bg-orange-500 rounded-full animate-bounce" style={{ animationDelay: "300ms" }} />
-                        </div>
-                        <span>Generating code...</span>
-                      </div>
-                    )}
-                    {codePanelData && codePanelData.codeBlocks.length > 0 && !codePanelOpen && (
-                      <div className="mb-6">
-                        <button
-                          onClick={() => setCodePanelOpen(true)}
-                          className="w-full px-6 py-4 rounded-xl border border-orange-500/30 bg-orange-500/10 hover:bg-orange-500/20 text-orange-300 flex items-center justify-between transition"
-                        >
-                          <div className="flex items-center gap-3">
-                            <Code size={20} />
-                            <div className="text-left">
-                              <div className="font-medium">View Generated Code</div>
-                              <div className="text-sm opacity-70">
-                                {codePanelData.codeBlocks.length} code block{codePanelData.codeBlocks.length > 1 ? "s" : ""} available
-                              </div>
-                            </div>
-                          </div>
-                          <ChevronRight size={20} />
-                        </button>
-                      </div>
-                    )}
-                    <div ref={messagesEndRef} />
-                  </div>
-                )}
-              </>
-            ) : (
-              <>
-                {/* Code Generation Mode - Left Panel */}
-                <div>
-                  <h3 className="font-semibold text-xl text-blue-500 mb-2">
-                    AI Component Generator
-                  </h3>
-                  <p className={`${isDark ? "text-white/70" : "text-gray-600"} mb-4`}>
-                    Describe your component and let AI code for you!
-                  </p>
+        {/* Chat Area - Main Content */}
+        <ChatArea
+          currentDate={currentDate}
+          greeting={greeting}
+          userName={userName}
+          showWelcome={showWelcome}
+          messages={messages}
+          isLoading={isLoading}
+          inputMessage={inputMessage}
+          selectedLanguage={selectedLanguage}
+          isDark={isDark}
+          messagesEndRef={messagesEndRef}
+          inputRef={inputRef}
+          onInputChange={setInputMessage}
+          onKeyPress={handleKeyPress}
+          onSendMessage={sendMessage}
+          onArtifactClick={handleArtifactClick}
+          selectedArtifact={selectedArtifact}
+          SUGGESTED_PROMPTS={SUGGESTED_PROMPTS}
+          rightPanelOpen={rightPanelOpen}
+          onCreateNewChat={createNewChatWithMessage}
+        />
+      </div>
 
-                  <p className="text-lg font-bold mt-6 mb-3">Framework</p>
-                  <select
-                    value={selectedFramework}
-                    onChange={(e) => setSelectedFramework(e.target.value)}
-                    className={`w-full px-4 py-2 rounded-lg border mb-6 ${
-                      isDark
-                        ? "bg-white/5 border-white/10 text-white"
-                        : "bg-white border-black/10 text-gray-900"
-                    }`}
-                  >
-                    <option value="html-css">HTML + CSS</option>
-                    <option value="html-tailwind">HTML + Tailwind CSS</option>
-                    <option value="html-bootsrap">HTML + Bootstrap</option>
-                    <option value="html-css-js">HTML + CSS + JS</option>
-                    <option value="html-tailwind-bootsrap">HTML + Tailwind + Bootstrap</option>
-                  </select>
+      {/* Right Panel - Code/Preview */}
+      <CodePreviewPanel
+        isOpen={rightPanelOpen}
+        onClose={handleClosePanel}
+        artifact={selectedArtifact}
+        isDark={isDark}
+      />
 
-                  <p className="text-lg font-semibold mb-3">
-                    Describe Your Component
-                  </p>
-
-                  <textarea
-                    className={`w-full rounded-lg p-4 border min-h-[200px] resize-none ${
-                      isDark
-                        ? "bg-white/5 border-white/10 text-white placeholder-white/30"
-                        : "bg-white border-black/10 text-gray-900 placeholder-gray-400"
-                    }`}
-                    placeholder="Describe your component in detail..."
-                    value={description}
-                    onChange={(e) => setDescription(e.target.value)}
-                  />
-
-                  <div className="flex items-center justify-between mt-6">
-                    <p className={isDark ? "text-white/60" : "text-gray-600"}>
-                      Click Generate to create code
-                    </p>
-                    <button
-                      onClick={generateCode}
-                      disabled={isLoading}
-                      className="font-medium px-6 py-2 rounded-lg bg-blue-500 text-white hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed"
-                    >
-                      {isLoading ? "Generating..." : "Generate"}
-                    </button>
-                  </div>
-                </div>
-              </>
-            )}
-          </div>
-
-          {/* RIGHT PANEL - Code/Preview */}
-          {outputScreen && (
-            <div className={`right flex-1 rounded-xl border overflow-hidden ${isDark ? "border-white/10" : "border-black/10"}`} style={{ backgroundColor: bgPanel }}>
-              {outputScreen ? (
-                <div className="codespace flex flex-col h-full">
-                  <div className="top w-full h-[60px] flex items-center px-4 gap-3 border-b" style={{ borderColor: isDark ? "rgba(255,255,255,0.1)" : "rgba(0,0,0,0.1)" }}>
-                    <button
-                      onClick={() => setTab(1)}
-                      className={`flex items-center justify-center font-semibold py-2 px-4 rounded-lg transition ${
-                        tab === 1
-                          ? isDark
-                            ? "bg-white/10"
-                            : "bg-black/10"
-                          : isDark
-                          ? "hover:bg-white/5"
-                          : "hover:bg-black/5"
-                      }`}
-                    >
-                      Code
-                    </button>
-                    <button
-                      onClick={() => setTab(2)}
-                      className={`flex items-center justify-center font-semibold py-2 px-4 rounded-lg transition ${
-                        tab === 2
-                          ? isDark
-                            ? "bg-white/10"
-                            : "bg-black/10"
-                          : isDark
-                          ? "hover:bg-white/5"
-                          : "hover:bg-black/5"
-                      }`}
-                    >
-                      Preview
-                    </button>
-                  </div>
-
-                  <div className="top2 w-full h-[60px] flex justify-between items-center px-4 border-b" style={{ borderColor: isDark ? "rgba(255,255,255,0.1)" : "rgba(0,0,0,0.1)" }}>
-                    <p className="font-semibold">Code Editor</p>
-                    <div className="flex items-center gap-2">
-                      {tab === 1 ? (
-                        <>
-                          <button
-                            onClick={() => {
-                              navigator.clipboard.writeText(generatedCode);
-                              toast.success("Code copied!");
-                            }}
-                            className={`text-lg rounded-lg px-3 py-2 border transition ${
-                              isDark
-                                ? "border-white/20 hover:bg-white/10"
-                                : "border-black/20 hover:bg-black/5"
-                            }`}
-                          >
-                            <i className="fa-regular fa-copy"></i>
-                          </button>
-                          <button
-                            onClick={() => {
-                              const element = document.createElement("a");
-                              element.setAttribute("href", "data:text/plain;charset=utf-8," + encodeURIComponent(generatedCode));
-                              element.setAttribute("download", "code.html");
-                              element.style.display = "none";
-                              document.body.appendChild(element);
-                              element.click();
-                              document.body.removeChild(element);
-                            }}
-                            className={`text-lg rounded-lg px-3 py-2 border transition ${
-                              isDark
-                                ? "border-white/20 hover:bg-white/10"
-                                : "border-black/20 hover:bg-black/5"
-                            }`}
-                          >
-                            <i className="fa-solid fa-file-export"></i>
-                          </button>
-                        </>
-                      ) : null}
-                    </div>
-                  </div>
-
-                  <div className="editor flex flex-1 w-full overflow-hidden">
-                    {tab === 1 ? (
-                      <Editor
-                        height="100%"
-                        language={getLanguageFromFramework(selectedFramework)}
-                        value={generatedCode || "// Generated code will appear here"}
-                        theme={isDark ? "vs-dark" : "vs-light"}
-                        options={{
-                          readOnly: false,
-                          wordWrap: "on",
-                          minimap: { enabled: false },
-                        }}
-                      />
-                    ) : (
-                      <div className={`preview w-full h-full overflow-auto ${isDark ? "bg-black/20" : "bg-white"}`}>
-                        {generatedCode && (
-                          <iframe
-                            title="preview"
-                            srcDoc={generatedCode}
-                            sandbox="allow-scripts allow-same-origin"
-                            style={{ width: "100%", height: "100%", border: "none" }}
-                          />
-                        )}
-                      </div>
-                    )}
-                  </div>
-                </div>
-              ) : (
-                <div className="flex flex-col items-center justify-center h-full text-center">
-                  <i className="fa-solid fa-code text-6xl opacity-50"></i>
-                  <p className="mt-4 opacity-70">Your code will appear here</p>
-                </div>
-              )}
-            </div>
-          )}
-        </div>
-
-        {/* Input area - Always visible for chat */}
-        {!outputScreen && (
-          <div className="px-6 py-4 border-t" style={{ borderColor: isDark ? "rgba(255,255,255,0.1)" : "rgba(0,0,0,0.1)" }}>
-            <div className="max-w-4xl mx-auto">
-              <div
-                className={`w-full rounded-3xl border p-4 text-left shadow-[0_10px_60px_rgba(0,0,0,0.4)] backdrop-blur bg-gradient-to-b ${
-                  isDark
-                    ? "from-white/5 to-transparent border-white/10"
-                    : "from-white to-gray-100 border-black/10"
-                }`}
-              >
-                <div className="flex items-end gap-2">
-                  <textarea
-                    ref={inputRef}
-                    value={inputMessage}
-                    onChange={(e) => setInputMessage(e.target.value)}
-                    onKeyPress={handleKeyPress}
-                    placeholder="How can I help you today?"
-                    rows={1}
-                    disabled={isLoading}
-                    className={`flex-1 resize-none bg-transparent text-lg focus:outline-none ${
-                      isDark
-                        ? "text-white placeholder-white/30"
-                        : "text-gray-900 placeholder-gray-400"
-                    }`}
-                    style={{ minHeight: "24px", maxHeight: "200px" }}
-                  />
-                  <button
-                    onClick={sendMessage}
-                    disabled={!inputMessage.trim() || isLoading}
-                    className={`flex items-center justify-center rounded-full p-3 transition ${
-                      inputMessage.trim() && !isLoading
-                        ? "bg-orange-500 text-white hover:bg-orange-600"
-                        : "bg-white/10 text-white/30 cursor-not-allowed"
-                    }`}
-                  >
-                    <ArrowUp size={18} />
-                  </button>
-                </div>
-              </div>
-            </div>
-          </div>
-        )}
-      </main>
-
-      {/* Code Panel */}
+      {/* Legacy Code Panel - for backward compatibility */}
       <CodePanel
         codeBlocks={codePanelData?.codeBlocks || []}
         language={selectedLanguage}

@@ -30,7 +30,7 @@ export default function MessageBubble({ message, isDark, onCodeBlockClick }) {
         } ${isUser ? textUser : textAI}`}
       >
         {isUser ? (
-          <div className="whitespace-pre-wrap break-words">{message.content}</div>
+          <div className="whitespace-pre-wrap break-words overflow-wrap-break-word">{message.content}</div>
         ) : (
           <div className="prose prose-invert max-w-none">
             <ReactMarkdown
