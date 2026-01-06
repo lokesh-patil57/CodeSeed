@@ -7,6 +7,8 @@ import {
   Eye,
   Copy as CopyIcon,
   Check,
+  Maximize2,
+  Minimize2,
 } from "lucide-react";
 import Editor from "@monaco-editor/react";
 import { toast } from "react-toastify";
@@ -21,6 +23,7 @@ const CodePreviewPanel = ({
   const [selectedVersion, setSelectedVersion] = useState("latest");
   const [copied, setCopied] = useState(false);
   const [selectedCodeIndex, setSelectedCodeIndex] = useState(0);
+  const [isFullscreen, setIsFullscreen] = useState(false);
 
   if (!isOpen || !artifact) return null;
 
@@ -154,6 +157,22 @@ const CodePreviewPanel = ({
               <Share2 size={16} className={textSecondary} />
             </button>
 
+            {/* Fullscreen button */}
+            <button
+              onClick={() => setIsFullscreen(!isFullscreen)}
+              className={`
+                p-2 rounded-lg transition
+                ${isDark ? "hover:bg-white/10" : "hover:bg-black/5"}
+              `}
+              title={isFullscreen ? "Exit fullscreen" : "View fullscreen"}
+            >
+              {isFullscreen ? (
+                <Minimize2 size={16} className={textSecondary} />
+              ) : (
+                <Maximize2 size={16} className={textSecondary} />
+              )}
+            </button>
+
             {/* Close button */}
             <button
               onClick={onClose}
@@ -285,6 +304,44 @@ const CodePreviewPanel = ({
           )}
         </div>
       </div>
+
+      {/* Fullscreen Preview Modal */}
+      {isFullscreen && currentLanguage === "html" && (
+        <div className="fixed inset-0 z-[60] flex flex-col bg-black">
+          {/* Header */}
+          <div
+            className={`
+              flex items-center justify-between px-6 py-4
+              border-b ${borderColor} shrink-0
+              ${isDark ? "bg-[#0c0d0f]" : "bg-white"}
+            `}
+          >
+            <h2 className={`text-lg font-semibold ${textPrimary}`}>
+              {artifact.title} - Fullscreen
+            </h2>
+            <button
+              onClick={() => setIsFullscreen(false)}
+              className={`
+                p-2 rounded-lg transition
+                ${isDark ? "hover:bg-white/10" : "hover:bg-black/5"}
+              `}
+              title="Exit fullscreen"
+            >
+              <Minimize2 size={18} className={textSecondary} />
+            </button>
+          </div>
+
+          {/* Fullscreen Preview */}
+          <div className="flex-1 overflow-hidden">
+            <iframe
+              srcDoc={currentCode}
+              className="w-full h-full border-none"
+              title="Fullscreen Preview"
+              sandbox="allow-scripts allow-same-origin"
+            />
+          </div>
+        </div>
+      )}
     </>
   );
 };

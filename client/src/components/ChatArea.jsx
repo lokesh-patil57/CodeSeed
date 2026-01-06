@@ -152,58 +152,56 @@ const ChatArea = ({
       </div>
 
       {/* Input Area - Fixed at bottom */}
-      {!showWelcome && (
-        <div
-          className={`
-            px-4 sm:px-6 md:px-8 pb-6 shrink-0
-            border-t
-            ${isDark ? "border-white/5" : "border-black/5"}
-          `}
-        >
-          <div className={`
-            max-w-3xl mx-auto flex gap-3
-          `}>
-            <textarea
-              ref={inputRef}
-              value={inputMessage}
-              onChange={(e) => onInputChange(e.target.value)}
-              onKeyPress={onKeyPress}
-              placeholder="Ask me to create something..."
-              className={`
-                flex-1 px-4 py-3 rounded-lg border resize-none
-                focus:outline-none focus:ring-2 focus:ring-orange-400/50
-                transition duration-200
-                ${
-                  isDark
-                    ? "bg-white/5 border-white/10 text-white placeholder-white/40"
-                    : "bg-black/5 border-black/10 text-gray-900 placeholder-gray-500"
-                }
-              `}
-              rows="3"
-            />
-            <button
-              onClick={onSendMessage}
-              disabled={isLoading || !inputMessage.trim()}
-              className={`
-                shrink-0 p-3 rounded-lg transition
-                flex items-center justify-center
-                ${
-                  isLoading || !inputMessage.trim()
-                    ? isDark
-                      ? "bg-white/5 text-white/30"
-                      : "bg-black/5 text-gray-400"
-                    : isDark
-                      ? "bg-orange-500/20 text-orange-400 hover:bg-orange-500/30"
-                      : "bg-orange-100 text-orange-600 hover:bg-orange-200"
-                }
-              `}
-              title="Send message"
-            >
-              <ArrowUp size={18} />
-            </button>
-          </div>
+      <div
+        className={`
+          px-4 sm:px-6 md:px-8 pb-6 shrink-0
+          border-t
+          ${isDark ? "border-white/5" : "border-black/5"}
+        `}
+      >
+        <div className={`
+          max-w-3xl mx-auto flex gap-3
+        `}>
+          <textarea
+            ref={inputRef}
+            value={inputMessage}
+            onChange={(e) => onInputChange(e.target.value)}
+            onKeyPress={onKeyPress}
+            placeholder="How can I help you today?"
+            className={`
+              flex-1 px-4 py-3 rounded-lg border resize-none
+              focus:outline-none focus:ring-2 focus:ring-orange-400/50
+              transition duration-200
+              ${
+                isDark
+                  ? "bg-white/5 border-white/10 text-white placeholder-white/40"
+                  : "bg-black/5 border-black/10 text-gray-900 placeholder-gray-500"
+              }
+            `}
+            rows="3"
+          />
+          <button
+            onClick={onSendMessage}
+            disabled={isLoading || !inputMessage.trim()}
+            className={`
+              shrink-0 p-3 rounded-lg transition
+              flex items-center justify-center
+              ${
+                isLoading || !inputMessage.trim()
+                  ? isDark
+                    ? "bg-white/5 text-white/30"
+                    : "bg-black/5 text-gray-400"
+                  : isDark
+                    ? "bg-orange-500/20 text-orange-400 hover:bg-orange-500/30"
+                    : "bg-orange-100 text-orange-600 hover:bg-orange-200"
+              }
+            `}
+            title="Send message"
+          >
+            <ArrowUp size={18} />
+          </button>
         </div>
-      )}
+      </div>
     </main>
   );
 };
