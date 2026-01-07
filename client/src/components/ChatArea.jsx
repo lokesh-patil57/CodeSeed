@@ -39,11 +39,7 @@ const ChatArea = ({
       return (
         <div key={idx} className="space-y-3 mb-6">
           {/* Message bubble */}
-          <MessageBubble
-            message={msg}
-            isDark={isDark}
-            isUser={isUser}
-          />
+          <MessageBubble message={msg} isDark={isDark} isUser={isUser} />
 
           {/* Artifact cards for code blocks */}
           {!isUser && codeBlocks.length > 0 && (
@@ -79,6 +75,43 @@ const ChatArea = ({
     });
   };
 
+  // Loading animation component
+  const LoadingAnimation = () => (
+    <div className="flex items-start gap-3 mb-6">
+      <div className="flex-1">
+        <div
+          className={`rounded-lg p-4 ${
+            isDark ? "bg-white/5" : "bg-black/5"
+          }`}
+        >
+          <div className="flex items-center gap-2">
+            <div className="flex gap-1">
+              <div
+                className={`w-2 h-2 rounded-full ${
+                  isDark ? "bg-white/60" : "bg-gray-600"
+                } animate-bounce`}
+                style={{ animationDelay: "0ms" }}
+              ></div>
+              <div
+                className={`w-2 h-2 rounded-full ${
+                  isDark ? "bg-white/60" : "bg-gray-600"
+                } animate-bounce`}
+                style={{ animationDelay: "150ms" }}
+              ></div>
+              <div
+                className={`w-2 h-2 rounded-full ${
+                  isDark ? "bg-white/60" : "bg-gray-600"
+                } animate-bounce`}
+                style={{ animationDelay: "300ms" }}
+              ></div>
+            </div>
+            <span className={`text-sm ${textSecondary}`}>Thinking...</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+
   return (
     <main
       className={`
@@ -103,7 +136,9 @@ const ChatArea = ({
                 <div className="flex justify-center">
                   <Sparkles size={40} color={accentColor} />
                 </div>
-                <h1 className={`text-3xl sm:text-4xl md:text-5xl font-light ${textColor}`}>
+                <h1
+                  className={`text-3xl sm:text-4xl md:text-5xl font-light ${textColor}`}
+                >
                   {greeting}, {userName}
                 </h1>
                 <p className={`text-base sm:text-lg ${textSecondary}`}>
@@ -141,11 +176,14 @@ const ChatArea = ({
             </div>
           ) : (
             // Chat Messages
-            <div className={`
+            <div
+              className={`
               space-y-6 py-4
               ${rightPanelOpen ? "max-w-2xl" : "max-w-3xl"}
-            `}>
+            `}
+            >
               {renderMessages()}
+              {isLoading && <LoadingAnimation />}
               <div ref={messagesEndRef} />
             </div>
           )}
@@ -156,14 +194,16 @@ const ChatArea = ({
       <div
         className={`
           px-4 sm:px-6 md:px-8 py-4 shrink-0 flex-shrink-0
-          border-t
-          ${isDark ? "border-white/5" : "border-black/5"}
+          
+          
         `}
         style={{ backgroundColor: bgMain }}
       >
-        <div className={`
+        <div
+          className={`
           max-w-3xl mx-auto flex gap-3
-        `}>
+        `}
+        >
           <textarea
             ref={inputRef}
             value={inputMessage}
@@ -194,8 +234,8 @@ const ChatArea = ({
                     ? "bg-white/5 text-white/30"
                     : "bg-black/5 text-gray-400"
                   : isDark
-                    ? "bg-orange-500/20 text-orange-400 hover:bg-orange-500/30"
-                    : "bg-orange-100 text-orange-600 hover:bg-orange-200"
+                  ? "bg-orange-500/20 text-orange-400 hover:bg-orange-500/30"
+                  : "bg-orange-100 text-orange-600 hover:bg-orange-200"
               }
             `}
             title="Send message"
