@@ -2,6 +2,7 @@ import React from "react";
 import { Sparkles, ArrowUp } from "lucide-react";
 import MessageBubble from "./MessageBubble";
 import ArtifactCard from "./ArtifactCard";
+import LoadingAnimation from "./LoadingAnimation";
 
 const ChatArea = ({
   currentDate,
@@ -75,43 +76,6 @@ const ChatArea = ({
     });
   };
 
-  // Loading animation component
-  const LoadingAnimation = () => (
-    <div className="flex items-start gap-3 mb-6">
-      <div className="flex-1">
-        <div
-          className={`rounded-lg p-4 ${
-            isDark ? "bg-white/5" : "bg-black/5"
-          }`}
-        >
-          <div className="flex items-center gap-2">
-            <div className="flex gap-1">
-              <div
-                className={`w-2 h-2 rounded-full ${
-                  isDark ? "bg-white/60" : "bg-gray-600"
-                } animate-bounce`}
-                style={{ animationDelay: "0ms" }}
-              ></div>
-              <div
-                className={`w-2 h-2 rounded-full ${
-                  isDark ? "bg-white/60" : "bg-gray-600"
-                } animate-bounce`}
-                style={{ animationDelay: "150ms" }}
-              ></div>
-              <div
-                className={`w-2 h-2 rounded-full ${
-                  isDark ? "bg-white/60" : "bg-gray-600"
-                } animate-bounce`}
-                style={{ animationDelay: "300ms" }}
-              ></div>
-            </div>
-            <span className={`text-sm ${textSecondary}`}>Thinking...</span>
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-
   return (
     <main
       className={`
@@ -183,7 +147,7 @@ const ChatArea = ({
             `}
             >
               {renderMessages()}
-              {isLoading && <LoadingAnimation />}
+              {isLoading && <LoadingAnimation isDark={isDark} />}
               <div ref={messagesEndRef} />
             </div>
           )}
