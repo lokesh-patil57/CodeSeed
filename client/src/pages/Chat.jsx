@@ -388,7 +388,7 @@ function Chat() {
   const handleArtifactClick = (artifact) => {
     setSelectedArtifact(artifact);
     setRightPanelOpen(true);
-    setSidebarOpen(false);
+    setSidebarOpen(false);  // Auto-close sidebar when panel opens
   };
 
   const handleClosePanel = () => {

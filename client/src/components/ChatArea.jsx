@@ -129,7 +129,7 @@ const ChatArea = ({
       className={`
         flex-1 flex flex-col relative overflow-hidden h-full
         transition-all duration-300
-        ${rightPanelOpen ? "lg:pr-0" : ""}
+        ${rightPanelOpen ? "lg:pr-[50%] md:pr-[55%]" : ""}
       `}
     >
       {/* Messages area - scrollable only, flex-1 to take remaining space */}
@@ -190,8 +190,10 @@ const ChatArea = ({
             // Chat Messages with Artifacts
             <div
               className={`
-                flex-1 overflow-y-auto space-y-6 py-4 px-4 sm:px-6 md:px-8
-                ${rightPanelOpen ? "max-w-2xl" : "max-w-3xl"}
+                space-y-6 py-4 px-4 sm:px-6 md:px-8
+                ${rightPanelOpen ? "max-w-2xl" : "max-w-4xl"}
+                mx-auto w-full
+                transition-all duration-300
               `}
             >
               {renderMessagesWithArtifacts()}
@@ -206,14 +208,14 @@ const ChatArea = ({
       <div
         className={`
           px-4 sm:px-6 md:px-8 py-4 shrink-0 flex-shrink-0
-          
-          
+          transition-all duration-300
+          ${rightPanelOpen ? "lg:pr-[calc(50%+1rem)] md:pr-[calc(55%+1rem)]" : ""}
         `}
         style={{ backgroundColor: bgMain }}
       >
         <div
           className={`
-          max-w-3xl mx-auto flex gap-3
+          max-w-4xl mx-auto flex gap-3
         `}
         >
           <textarea
