@@ -11,8 +11,8 @@ const ArtifactCard = ({
   onClick,
   isSelected,
 }) => {
-  const bgColor = isDark ? "bg-[#141413] hover:bg-[#1a1a18]" : "bg-gray-50 hover:bg-gray-100";
-  const borderColor = isDark ? "border-white/10" : "border-black/10";
+  const bgColor = isDark ? "bg-[#1a1a1a] hover:bg-[#242423]" : "bg-white hover:bg-gray-50";
+  const borderColor = isDark ? "border-white/10" : "border-gray-200";
   const textPrimary = isDark ? "text-white" : "text-gray-900";
   const textSecondary = isDark ? "text-white/60" : "text-gray-600";
   const accentColor = isDark ? "text-orange-400" : "text-orange-600";
