@@ -91,8 +91,8 @@ const ChatArea = ({
                   {/* Component Details / Description */}
                   {artifact.details && (
                     <div
-                      className={`rounded-lg p-3 text-sm ${
-                        isDark ? "bg-white/5" : "bg-black/5"
+                      className={`rounded-lg p-3 text-sm border ${
+                        isDark ? "bg-[#1a1a1a] border-white/10" : "bg-white border-gray-200"
                       }`}
                     >
                       <div className={`space-y-1.5 ${isDark ? "text-white/80" : "text-gray-700"}`}>

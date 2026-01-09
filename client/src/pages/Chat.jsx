@@ -388,6 +388,7 @@ function Chat() {
   const handleArtifactClick = (artifact) => {
     setSelectedArtifact(artifact);
     setRightPanelOpen(true);
+    setSidebarOpen(false);
   };
 
   const handleClosePanel = () => {
