@@ -31,45 +31,93 @@ const ChatArea = ({
   const bgPanel = isDark ? "#141413" : "#f5f5f7";
   const bgMain = isDark ? "#1a1a1a" : "#ffffff";
 
-  // Transform messages to include artifact cards for code blocks
-  const renderMessages = () => {
+  // Get artifacts for a specific message index
+  const getMessageArtifacts = (msgIdx) => {
+    const msg = messages[msgIdx];
+    if (!msg || msg.role === "user" || !msg.codeBlocks || msg.codeBlocks.length === 0) {
+      return [];
+    }
+
+    return msg.codeBlocks.map((block, blockIdx) => {
+      const componentName = block.description && block.description.trim() ? 
+        block.description : 
+        `Component ${blockIdx + 1}`;
+      
+      return {
+        id: `${msgIdx}-${blockIdx}`,
+        msgIdx,
+        blockIdx,
+        title: componentName,
+        type: "Interactive Artifact",
+        version: blockIdx > 0 ? `v${blockIdx + 1}` : "v1",
+        codeBlocks: msg.codeBlocks,
+        language: block.language,
+        details: block.details || "",
+        block,
+      };
+    });
+  };
+
+  // Render messages with their associated artifacts in correct order
+  const renderMessagesWithArtifacts = () => {
     return messages.map((msg, idx) => {
       const isUser = msg.role === "user";
-      const codeBlocks = msg.codeBlocks || [];
-
+      const artifacts = getMessageArtifacts(idx);
+      
       return (
-        <div key={idx} className="space-y-3 mb-6">
-          {/* Message bubble */}
-          <MessageBubble message={msg} isDark={isDark} isUser={isUser} />
+        <div key={idx} className="space-y-4">
+          {/* 1. User Prompt - Always show first for users */}
+          {isUser && <MessageBubble message={msg} isDark={isDark} />}
 
-          {/* Artifact cards for code blocks */}
-          {!isUser && codeBlocks.length > 0 && (
-            <div className="space-y-3 pl-0 md:pl-8">
-              {codeBlocks.map((block, blockIdx) => (
-                <ArtifactCard
-                  key={blockIdx}
-                  title={block.description || `Component ${blockIdx + 1}`}
-                  type="Interactive Artifact"
-                  version="v1"
-                  codeBlocks={codeBlocks}
-                  language={block.language}
-                  isDark={isDark}
-                  onClick={() => {
-                    const artifact = {
-                      title: block.description || `Component ${blockIdx + 1}`,
-                      type: "Interactive Artifact",
-                      version: "v1",
-                      codeBlocks: codeBlocks,
-                      language: block.language,
-                    };
-                    onArtifactClick(artifact);
-                  }}
-                  isSelected={
-                    selectedArtifact?.codeBlocks?.[0]?.code === block.code
-                  }
-                />
+          {/* 2. Component Cards - Show for AI responses with code blocks */}
+          {!isUser && artifacts.length > 0 && (
+            <div className="space-y-4 pl-0 md:pl-8">
+              {artifacts.map((artifact) => (
+                <div key={artifact.id} className="space-y-2">
+                  {/* Component Card */}
+                  <ArtifactCard
+                    title={artifact.title}
+                    type={artifact.type}
+                    version={artifact.version}
+                    codeBlocks={artifact.codeBlocks}
+                    language={artifact.language}
+                    isDark={isDark}
+                    onClick={() => {
+                      onArtifactClick(artifact);
+                    }}
+                    isSelected={selectedArtifact?.id === artifact.id}
+                  />
+                  
+                  {/* Component Details / Description */}
+                  {artifact.details && (
+                    <div
+                      className={`rounded-lg p-3 text-sm ${
+                        isDark ? "bg-white/5" : "bg-black/5"
+                      }`}
+                    >
+                      <div className={`space-y-1.5 ${isDark ? "text-white/80" : "text-gray-700"}`}>
+                        {artifact.details.split("\n").map((line, lineIdx) => (
+                          line.trim() && (
+                            <div key={lineIdx} className="flex items-start gap-2">
+                              <span className="text-orange-400 mt-1 font-bold text-xs">•</span>
+                              <span>{line.trim()}</span>
+                            </div>
+                          )
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </div>
               ))}
             </div>
+          )}
+
+          {/* 3. AI Description Message - Show after component cards */}
+          {!isUser && <MessageBubble message={msg} isDark={isDark} />}
+
+          {/* If AI message with no code blocks, show message normally */}
+          {!isUser && artifacts.length === 0 && !showWelcome && (
+            <MessageBubble message={msg} isDark={isDark} />
           )}
         </div>
       );
@@ -139,14 +187,14 @@ const ChatArea = ({
               </div>
             </div>
           ) : (
-            // Chat Messages
+            // Chat Messages with Artifacts
             <div
               className={`
-              space-y-6 py-4
-              ${rightPanelOpen ? "max-w-2xl" : "max-w-3xl"}
-            `}
+                flex-1 overflow-y-auto space-y-6 py-4 px-4 sm:px-6 md:px-8
+                ${rightPanelOpen ? "max-w-2xl" : "max-w-3xl"}
+              `}
             >
-              {renderMessages()}
+              {renderMessagesWithArtifacts()}
               {isLoading && <LoadingAnimation isDark={isDark} />}
               <div ref={messagesEndRef} />
             </div>

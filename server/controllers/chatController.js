@@ -395,12 +395,78 @@ function extractCodeBlocks(content) {
   const codeBlocks = [];
   const codeBlockRegex = /```(\w+)?\n([\s\S]*?)```/g;
   let match;
+  let componentIndex = 0;
+  let lastIndex = 0;
 
   while ((match = codeBlockRegex.exec(content)) !== null) {
+    const code = match[2].trim();
+    let description = "";
+    let componentDetails = "";
+
+    // Try to extract component name from comments or code
+    const commentMatch = code.match(/(?:\/\/|\/\*)\s*(?:Component|Component Name):\s*([^\n*]+)/i);
+    if (commentMatch) {
+      description = commentMatch[1].trim();
+    } else {
+      // Try to extract from HTML/React/Vue component definitions
+      const componentMatch = code.match(
+        /(?:class|function|const)\s+([A-Za-z_][A-Za-z0-9_]*)\s*(?:extends|=|\()/
+      );
+      if (componentMatch) {
+        description = componentMatch[1];
+      } else {
+        // Try to extract title from h1, title attribute, or similar
+        const titleMatch = code.match(/<h1[^>]*>([^<]+)<\/h1>|title[=:]\s*['"]+([^'"]+)['"]/i);
+        if (titleMatch) {
+          description = titleMatch[1] || titleMatch[2];
+        }
+      }
+    }
+
+    // Fallback to generic name if no description found
+    if (!description) {
+      componentIndex++;
+      description = `Component ${componentIndex}`;
+    }
+
+    // Extract component details (bullet points) from text after the code block
+    const textAfterCodeBlock = content.substring(match.index + match[0].length);
+    const nextCodeBlockMatch = /```/.exec(textAfterCodeBlock);
+    const nextCodeBlockIndex = nextCodeBlockMatch ? match.index + match[0].length + nextCodeBlockMatch.index : content.length;
+    const textBeforeNextBlock = content.substring(match.index + match[0].length, nextCodeBlockIndex);
+    
+    // Extract bullet points and features (text with - or • or numbered lists)
+    const bulletPointRegex = /^[\s]*[-•*]\s+(.+)$/gm;
+    const numberedRegex = /^[\s]*\d+\.\s+(.+)$/gm;
+    const detailLines = [];
+    
+    let bulletMatch;
+    while ((bulletMatch = bulletPointRegex.exec(textBeforeNextBlock)) !== null) {
+      detailLines.push(bulletMatch[1].trim());
+    }
+    
+    let numberedMatch;
+    while ((numberedMatch = numberedRegex.exec(textBeforeNextBlock)) !== null) {
+      detailLines.push(numberedMatch[1].trim());
+    }
+
+    // If we found bullet points/features, use them as component details
+    if (detailLines.length > 0) {
+      componentDetails = detailLines.join("\n");
+    } else {
+      // Otherwise, extract the paragraph before the code block as description
+      const textBeforeCode = content.substring(Math.max(0, match.index - 500), match.index);
+      const paragraphMatch = textBeforeCode.match(/([^.\n]*[.!?])\s*$/);
+      if (paragraphMatch) {
+        componentDetails = paragraphMatch[1].trim();
+      }
+    }
+
     codeBlocks.push({
       language: match[1] || "text",
-      code: match[2].trim(),
-      description: "",
+      code: code,
+      description: description,
+      details: componentDetails,
     });
   }
 
