@@ -135,7 +135,7 @@ const ChatArea = ({
       {/* Messages area - scrollable only, flex-1 to take remaining space */}
       <div
         className={`
-          flex-1 overflow-y-auto overflow-x-hidden
+          flex-1 overflow-y-auto overflow-x-hidden hide-scrollbar
           transition-all duration-300 ease-out
         `}
       >
