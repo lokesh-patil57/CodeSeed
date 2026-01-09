@@ -153,9 +153,9 @@ const ChatArea = ({
                 >
                   {greeting}, {userName}
                 </h1>
-                <p className={`text-base sm:text-lg ${textSecondary}`}>
+                {/* <p className={`text-base sm:text-lg ${textSecondary}`}>
                   {currentDate}
-                </p>
+                </p> */}
               </div>
 
               <p className={`text-base sm:text-lg ${textSecondary}`}>

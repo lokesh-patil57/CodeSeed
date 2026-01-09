@@ -489,14 +489,15 @@ function Chat() {
             <select
               value={selectedLanguage}
               onChange={(e) => setSelectedLanguage(e.target.value)}
-              className={`rounded-lg px-2 sm:px-3 py-2 text-xs sm:text-sm focus:outline-none border ${
+              className={`rounded-lg px-2 sm:px-3 py-2 text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-orange-400/50 border font-medium transition-colors ${
                 isDark
-                  ? "text-white/70 border-white/10 bg-white/5"
-                  : "text-gray-800 border-black/10 bg-black/5"
+                  ? "text-white border-white/20 hover:bg-white/10"
+                  : "text-black border-gray-300 bg-white hover:bg-gray-50"
               }`}
+              style={isDark ? { backgroundColor: "#141413", borderColor: "#333" } : {}}
             >
               {AVAILABLE_LANGUAGES.map((lang) => (
-                <option key={lang} value={lang}>
+                <option key={lang} value={lang} style={isDark ? { backgroundColor: "#1a1a1a", color: "white" } : { backgroundColor: "white", color: "black" }}>
                   {lang}
                 </option>
               ))}
