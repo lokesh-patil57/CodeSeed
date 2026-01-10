@@ -208,16 +208,15 @@ const ChatArea = ({
       <div
         className={`
           px-4 sm:px-6 md:px-8 py-4 shrink-0 flex-shrink-0
-          transition-all duration-300
-          ${rightPanelOpen ? "lg:pr-[calc(50%+1rem)] md:pr-[calc(55%+1rem)]" : ""}
+          transition-all duration-300 w-full
         `}
         style={{ backgroundColor: bgMain }}
       >
         <div
           className={`
-          ${rightPanelOpen ? "max-w-2xl" : "max-w-4xl"}
-          mx-auto w-full flex gap-3 items-end
+          w-full flex gap-3 items-end
           transition-all duration-300
+          ${rightPanelOpen ? "" : "max-w-4xl mx-auto"}
         `}
         >
           <textarea
