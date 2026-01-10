@@ -7,6 +7,20 @@ export default function NavBar({ isDark, toggleTheme, focusEmail }) {
   const btnHover = isDark ? "hover:bg-white/5" : "hover:bg-black/5";
   const btnText = isDark ? "text-gray-300" : "text-gray-700";
 
+  const handleAboutClick = () => {
+    setTimeout(() => {
+      const meetSection = document.getElementById("meet-codeseed");
+      if (meetSection) {
+        const offset = 64; // navbar height
+        const topPosition = meetSection.offsetTop - offset;
+        window.scrollTo({
+          top: topPosition,
+          behavior: "smooth"
+        });
+      }
+    }, 0);
+  };
+
   return (
     // full-width header with glass-morphism + transparent backgrounds for both themes
     <header
@@ -39,6 +53,7 @@ export default function NavBar({ isDark, toggleTheme, focusEmail }) {
             {/* Right side - Icons */}
             <div className="flex items-center space-x-2">
               <button
+                onClick={handleAboutClick}
                 className={`${btnBase} ${btnHover} ${btnText}`}
                 aria-label="About"
                 title="About"
@@ -55,7 +70,7 @@ export default function NavBar({ isDark, toggleTheme, focusEmail }) {
                 {isDark ? <Sun size={20} /> : <Moon size={20} />}
               </button>
 
-              <button
+              {/* <button
                 className={`${btnBase} ${btnHover} ${btnText}`}
                 aria-label="Settings"
                 title="Settings"
@@ -69,7 +84,7 @@ export default function NavBar({ isDark, toggleTheme, focusEmail }) {
                 title="Profile"
               >
                 <User size={20} />
-              </button>
+              </button> */}
 
               <button
                 onClick={focusEmail}

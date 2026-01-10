@@ -463,7 +463,7 @@ export default function LoginPreview() {
       </div>
 
       {/* Meet CodeSeed section */}
-      <section>
+      <section id="meet-codeseed">
         <div className="max-w-6xl mx-auto px-6 py-16">
           {/* Centered heading & description */}
           <div className="text-center max-w-3xl mx-auto mb-12">

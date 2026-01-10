@@ -215,7 +215,9 @@ const ChatArea = ({
       >
         <div
           className={`
-          max-w-4xl mx-auto flex gap-3
+          ${rightPanelOpen ? "max-w-2xl" : "max-w-4xl"}
+          mx-auto w-full flex gap-3 items-end
+          transition-all duration-300
         `}
         >
           <textarea
@@ -223,9 +225,9 @@ const ChatArea = ({
             value={inputMessage}
             onChange={(e) => onInputChange(e.target.value)}
             onKeyPress={onKeyPress}
-            placeholder="How can I help you today?"
+            placeholder="Reply..."
             className={`
-              flex-1 px-4 py-3 rounded-lg border resize-none
+              flex-1 px-4 py-2 rounded-xl border resize-none
               focus:outline-none focus:ring-2 focus:ring-orange-400/50
               transition duration-200
               ${
@@ -236,26 +238,28 @@ const ChatArea = ({
             `}
             rows="3"
           />
-          <button
-            onClick={onSendMessage}
-            disabled={isLoading || !inputMessage.trim()}
-            className={`
-              shrink-0 p-3 rounded-lg transition
-              flex items-center justify-center
-              ${
-                isLoading || !inputMessage.trim()
-                  ? isDark
-                    ? "bg-white/5 text-white/30"
-                    : "bg-black/5 text-gray-400"
-                  : isDark
-                  ? "bg-orange-500/20 text-orange-400 hover:bg-orange-500/30"
-                  : "bg-orange-100 text-orange-600 hover:bg-orange-200"
-              }
-            `}
-            title="Send message"
-          >
-            <ArrowUp size={18} />
-          </button>
+          <div className="flex gap-2 shrink-0">
+            <button
+              onClick={onSendMessage}
+              disabled={isLoading || !inputMessage.trim()}
+              className={`
+                p-3 rounded-lg transition
+                flex items-center justify-center
+                ${
+                  isLoading || !inputMessage.trim()
+                    ? isDark
+                      ? "bg-white/5 text-white/30"
+                      : "bg-black/5 text-gray-400"
+                    : isDark
+                    ? "bg-orange-500/20 text-orange-400 hover:bg-orange-500/30"
+                    : "bg-orange-100 text-orange-600 hover:bg-orange-200"
+                }
+              `}
+              title="Send message"
+            >
+              <ArrowUp size={18} />
+            </button>
+          </div>
         </div>
       </div>
     </main>
