@@ -1,44 +1,41 @@
 import React, { useEffect, useMemo, useState, useContext, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
-import { Sun, Moon, ArrowUp, Code, ChevronRight, Sparkles, Menu, X } from "lucide-react";
+import { Sun, Moon, Menu, X } from "lucide-react";
 import { format } from "date-fns";
 import { AppContext } from "../context/AppContext";
-import MessageBubble from "../components/MessageBubble";
-import CodePanel from "../components/CodePanel";
-import SettingsModal from "../components/SettingsModal";
-import Editor from "@monaco-editor/react";
-import EnhancedSidebar from "../components/EnhancedSidebar";
+import Sidebar from "../components/Sidebar";
 import ChatArea from "../components/ChatArea";
 import CodePreviewPanel from "../components/CodePreviewPanel";
-
-const PRIMARY_BG = "#1a1a1a";
-const PANEL_BG = "#1a1a1a";
-const ACCENT = "#f4a261";
-
-const AVAILABLE_LANGUAGES = [
-  "HTML + CSS",
-  "HTML + Tailwind CSS",
-  "HTML + Bootstrap",
-  "HTML + CSS + JS",
-  "HTML + Tailwind + Bootstrap",
-  "React + Tailwind",
-  "Vue + Tailwind",
-  "Angular + Bootstrap",
-  "Next.js + Tailwind",
-];
-
-const SUGGESTED_PROMPTS = [
-  "Create a login form",
-  "Build a pricing card",
-  "Design a navigation bar",
-  "Make a button component",
-  "Create a modal dialog",
-];
+import CodePanel from "../components/CodePanel";
+import SettingsModal from "../components/SettingsModal";
+import { useChatAPI } from "../hooks/useChatAPI";
+import {
+  AVAILABLE_LANGUAGES,
+  SUGGESTED_PROMPTS,
+  PRIMARY_BG,
+} from "../constants/chatConfig";
+import {
+  getGreeting,
+  getUserDisplayName,
+  extractCodeBlocks,
+} from "../utils/chatHelpers";
 
 function Chat() {
   const navigate = useNavigate();
   const { isDark, setIsDark } = useContext(AppContext);
+  const {
+    isLoading,
+    loadChats: apiLoadChats,
+    createNewChat: apiCreateNewChat,
+    loadChat: apiLoadChat,
+    sendMessage: apiSendMessage,
+    deleteChat: apiDeleteChat,
+    updateChatTitle: apiUpdateChatTitle,
+    logout: apiLogout,
+  } = useChatAPI();
+
+  // State management
   const [fadeIn, setFadeIn] = useState(false);
   const [user, setUser] = useState(null);
   const [userName, setUserName] = useState("there");
@@ -48,40 +45,25 @@ function Chat() {
   const [messages, setMessages] = useState([]);
   const [inputMessage, setInputMessage] = useState("");
   const [selectedLanguage, setSelectedLanguage] = useState("HTML + CSS");
-  const [isLoading, setIsLoading] = useState(false);
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [showWelcome, setShowWelcome] = useState(true);
-  const [editingChatId, setEditingChatId] = useState(null);
-  const [editingTitle, setEditingTitle] = useState("");
-  
-  // Three-pane state
   const [rightPanelOpen, setRightPanelOpen] = useState(false);
   const [selectedArtifact, setSelectedArtifact] = useState(null);
-  
-  // Legacy states (keep for backward compatibility)
-  const [outputScreen, setOutputScreen] = useState(false);
-  const [tab, setTab] = useState(1);
-  const [generatedCode, setGeneratedCode] = useState("");
-  const [selectedFramework, setSelectedFramework] = useState("html-css");
-  const [description, setDescription] = useState("");
   const [codePanelOpen, setCodePanelOpen] = useState(false);
   const [codePanelData, setCodePanelData] = useState(null);
 
+  // Refs
   const messagesEndRef = useRef(null);
   const inputRef = useRef(null);
-  const backendUrl = import.meta.env.VITE_BACKEND_URL;
 
-  const greeting = useMemo(() => {
-    const hour = new Date().getHours();
-    if (hour < 12) return "Good morning";
-    if (hour < 17) return "Good afternoon";
-    return "Good evening";
-  }, []);
+  // Memoized values
+  const greeting = useMemo(() => getGreeting(), []);
+  const currentDate = useMemo(
+    () => format(new Date(), "EEEE, MMMM d, yyyy"),
+    []
+  );
 
-  const currentDate = useMemo(() => {
-    return format(new Date(), "EEEE, MMMM d, yyyy");
-  }, []);
-
+  // Initialize user and load chats
   useEffect(() => {
     const storedUser = localStorage.getItem("user");
     if (!storedUser) {
@@ -92,11 +74,7 @@ function Chat() {
     try {
       const parsedUser = JSON.parse(storedUser);
       setUser(parsedUser);
-      const fallbackName =
-        parsedUser?.username ||
-        parsedUser?.email?.split("@")[0] ||
-        "friend";
-      setUserName(fallbackName);
+      setUserName(getUserDisplayName(parsedUser));
       setTimeout(() => setFadeIn(true), 150);
       loadChats();
     } catch (error) {
@@ -105,81 +83,62 @@ function Chat() {
     }
   }, [navigate]);
 
+  // Scroll to bottom when messages change
   useEffect(() => {
-    scrollToBottom();
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
 
-  const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  };
-
-  const loadChats = async () => {
-    try {
-      const response = await fetch(`${backendUrl}/api/chat`, {
-        credentials: "include",
-      });
-      if (response.ok) {
-        const data = await response.json();
-        if (data.success) {
-          setChats(data.chats || []);
+  // Extract code blocks from last AI message
+  useEffect(() => {
+    if (messages.length > 0) {
+      const lastMessage = messages[messages.length - 1];
+      if (lastMessage?.role === "assistant") {
+        if (lastMessage?.codeBlocks?.length > 0) {
+          setCodePanelData({
+            codeBlocks: lastMessage.codeBlocks,
+            language: selectedLanguage,
+          });
+        } else {
+          const codeBlocks = extractCodeBlocks(lastMessage.content);
+          if (codeBlocks.length > 0) {
+            setCodePanelData({
+              codeBlocks,
+              language: selectedLanguage,
+            });
+          }
         }
       }
-    } catch (error) {
-      console.error("Error loading chats:", error);
     }
+  }, [messages, selectedLanguage]);
+
+  // API wrapper functions
+  const loadChats = async () => {
+    const loadedChats = await apiLoadChats();
+    setChats(loadedChats);
   };
 
   const createNewChat = async () => {
-    try {
-      const response = await fetch(`${backendUrl}/api/chat`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        credentials: "include",
-        body: JSON.stringify({
-          title: "New Chat",
-          selectedLanguage,
-        }),
-      });
-
-      if (response.ok) {
-        const data = await response.json();
-        if (data.success) {
-          const newChat = data.chat;
-          setCurrentChat(newChat);
-          setMessages([]);
-          setShowWelcome(false);
-          setCodePanelOpen(false);
-          setOutputScreen(false);
-          loadChats();
-          inputRef.current?.focus();
-          return newChat;
-        }
-      }
-    } catch (error) {
-      console.error("Error creating chat:", error);
-      toast.error("Failed to create new chat");
+    const newChat = await apiCreateNewChat("New Chat", selectedLanguage);
+    if (newChat) {
+      setCurrentChat(newChat);
+      setMessages([]);
+      setShowWelcome(false);
+      setCodePanelOpen(false);
+      loadChats();
+      inputRef.current?.focus();
+      return newChat;
     }
+    return null;
   };
 
   const loadChat = async (chatId) => {
-    try {
-      const response = await fetch(`${backendUrl}/api/chat/${chatId}`, {
-        credentials: "include",
-      });
-      if (response.ok) {
-        const data = await response.json();
-        if (data.success) {
-          setCurrentChat(data.chat);
-          setMessages(data.chat.messages || []);
-          setSelectedLanguage(data.chat.selectedLanguage || "HTML + CSS");
-          setShowWelcome(false);
-          setCodePanelOpen(false);
-          setOutputScreen(false);
-        }
-      }
-    } catch (error) {
-      console.error("Error loading chat:", error);
-      toast.error("Failed to load chat");
+    const chat = await apiLoadChat(chatId);
+    if (chat) {
+      setCurrentChat(chat);
+      setMessages(chat.messages || []);
+      setSelectedLanguage(chat.selectedLanguage || "HTML + CSS");
+      setShowWelcome(false);
+      setCodePanelOpen(false);
     }
   };
 
@@ -206,178 +165,63 @@ function Chat() {
 
     setMessages((prev) => [...prev, userMessage]);
     setInputMessage("");
-    setIsLoading(true);
 
-    try {
-      if (!chatId) {
-        toast.error("Chat not initialized");
-        return;
+    const response = await apiSendMessage(
+      chatId,
+      userMessage.content,
+      selectedLanguage
+    );
+
+    if (response) {
+      setMessages((prev) => [...prev, response.message]);
+      if (response.chat?.title && response.chat.title !== currentChat?.title) {
+        setCurrentChat((prev) => ({ ...prev, title: response.chat.title }));
+        loadChats();
       }
-
-      const response = await fetch(`${backendUrl}/api/chat/${chatId}/message`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        credentials: "include",
-        body: JSON.stringify({
-          message: userMessage.content,
-          selectedLanguage,
-        }),
-      });
-
-      if (response.ok) {
-        const data = await response.json();
-        if (data.success) {
-          setMessages((prev) => [...prev, data.message]);
-          if (data.chat?.title && data.chat.title !== currentChat?.title) {
-            setCurrentChat((prev) => ({ ...prev, title: data.chat.title }));
-            loadChats();
-          }
-        }
-      } else {
-        const errorData = await response.json();
-        toast.error(errorData.message || "Failed to send message");
-      }
-    } catch (error) {
-      console.error("Error sending message:", error);
-      toast.error("Failed to send message");
-    } finally {
-      setIsLoading(false);
+    } else {
+      setMessages((prev) => prev.slice(0, -1));
     }
   };
 
-  // Code generation function
-  async function generateCode() {
-    if (!description.trim()) {
-      toast.error("Please describe your component");
-      return;
-    }
-
-    setIsLoading(true);
-    try {
-      const response = await fetch(`${backendUrl}/api/chat/generate-code`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        credentials: "include",
-        body: JSON.stringify({
-          prompt: description,
-          framework: getFrameworkLabel(selectedFramework),
-        }),
-      });
-
-      if (response.ok) {
-        const data = await response.json();
-        if (data.success) {
-          setGeneratedCode(data.code);
-          setOutputScreen(true);
-          setTab(1);
-          toast.success("Code generated successfully!");
-        }
-      } else {
-        const error = await response.json();
-        toast.error("Error: " + (error.message || "Failed to generate code"));
-      }
-    } catch (error) {
-      console.error("Error:", error);
-      toast.error("Error: " + error.message);
-    } finally {
-      setIsLoading(false);
-    }
-  }
-
-  function getFrameworkLabel(value) {
-    const frameworkMap = {
-      "html-css": "HTML + CSS",
-      "html-tailwind": "HTML + Tailwind CSS",
-      "html-bootsrap": "HTML + Bootstrap",
-      "html-css-js": "HTML + CSS + JS",
-      "html-tailwind-bootsrap": "HTML + Tailwind + Bootstrap",
-    };
-    return frameworkMap[value] || "HTML + CSS";
-  }
-
-  function getLanguageFromFramework(value) {
-    const languageMap = {
-      "html-css": "html",
-      "html-tailwind": "html",
-      "html-bootsrap": "html",
-      "html-css-js": "javascript",
-      "html-tailwind-bootsrap": "html",
-    };
-    return languageMap[value] || "html";
-  }
-
-  const handleCodeBlockClick = (code, language) => {
-    setCodePanelData({
-      codeBlocks: [{ code, language }],
-      language: selectedLanguage,
-    });
-    setCodePanelOpen(true);
-  };
-
-  const deleteChat = async (chatId, e) => {
+  const handleDeleteChat = async (chatId, e) => {
     e.stopPropagation();
     if (!window.confirm("Are you sure you want to delete this chat?")) return;
 
-    try {
-      const response = await fetch(`${backendUrl}/api/chat/${chatId}`, {
-        method: "DELETE",
-        credentials: "include",
-      });
-
-      if (response.ok) {
-        if (currentChat?._id === chatId) {
-          setCurrentChat(null);
-          setMessages([]);
-          setShowWelcome(true);
-        }
-        loadChats();
-        toast.success("Chat deleted");
+    const success = await apiDeleteChat(chatId);
+    if (success) {
+      if (currentChat?._id === chatId) {
+        setCurrentChat(null);
+        setMessages([]);
+        setShowWelcome(true);
       }
-    } catch (error) {
-      console.error("Error deleting chat:", error);
-      toast.error("Failed to delete chat");
+      loadChats();
     }
   };
 
-  const updateChatTitle = async (chatId, newTitle) => {
-    try {
-      const response = await fetch(`${backendUrl}/api/chat/${chatId}`, {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        credentials: "include",
-        body: JSON.stringify({ title: newTitle }),
-      });
-
-      if (response.ok) {
-        loadChats();
-        if (currentChat?._id === chatId) {
-          setCurrentChat((prev) => ({ ...prev, title: newTitle }));
-        }
+  const handleUpdateChatTitle = async (chatId, newTitle) => {
+    const success = await apiUpdateChatTitle(chatId, newTitle);
+    if (success) {
+      loadChats();
+      if (currentChat?._id === chatId) {
+        setCurrentChat((prev) => ({ ...prev, title: newTitle }));
       }
-    } catch (error) {
-      console.error("Error updating chat:", error);
     }
   };
 
   const handleLogout = async () => {
-    try {
-      const res = await fetch(`${backendUrl}/api/auth/logout`, {
-        method: "POST",
-        credentials: "include",
-      });
-      if (res.ok) {
-        localStorage.removeItem("user");
-        localStorage.removeItem("pendingVerifyEmail");
-        navigate("/", { replace: true });
-        toast.success("Logged out");
-      }
-    } catch (error) {
-      console.error("Logout error:", error);
+    const success = await apiLogout();
+    if (success) {
+      localStorage.removeItem("user");
+      localStorage.removeItem("pendingVerifyEmail");
+      navigate("/", { replace: true });
+      toast.success("Logged out");
+    } else {
       localStorage.removeItem("user");
       navigate("/", { replace: true });
     }
   };
 
+  // Event handlers
   const handleKeyPress = (e) => {
     if (e.key === "Enter" && !e.shiftKey) {
       e.preventDefault();
@@ -388,12 +232,12 @@ function Chat() {
   const handleArtifactClick = (artifact) => {
     setSelectedArtifact(artifact);
     setRightPanelOpen(true);
-    setSidebarOpen(false);  // Auto-close sidebar when panel opens
+    setSidebarOpen(false);
   };
 
   const handleClosePanel = () => {
     setRightPanelOpen(false);
-    setTimeout(() => setSelectedArtifact(null), 300); // Wait for animation
+    setTimeout(() => setSelectedArtifact(null), 300);
   };
 
   const createNewChatWithMessage = async (message) => {
@@ -404,44 +248,10 @@ function Chat() {
     }
   };
 
-  const handleDeleteChat = deleteChat;
-  const handleUpdateChatTitle = updateChatTitle;
-
+  // Theme utilities
   const textColor = isDark ? "text-white" : "text-gray-900";
   const bgMain = isDark ? PRIMARY_BG : "#f5f5f7";
-  const bgPanel = isDark ? PANEL_BG : "#ffffff";
   const toggleTheme = () => setIsDark((prev) => !prev);
-
-  useEffect(() => {
-    if (messages.length > 0) {
-      const lastMessage = messages[messages.length - 1];
-      if (lastMessage?.role === "assistant") {
-        if (lastMessage?.codeBlocks?.length > 0) {
-          setCodePanelData({
-            codeBlocks: lastMessage.codeBlocks,
-            language: selectedLanguage,
-          });
-        } else {
-          const codeBlockRegex = /```(\w+)?\n([\s\S]*?)```/g;
-          const codeBlocks = [];
-          let match;
-          while ((match = codeBlockRegex.exec(lastMessage.content)) !== null) {
-            codeBlocks.push({
-              language: match[1] || "text",
-              code: match[2].trim(),
-              description: "",
-            });
-          }
-          if (codeBlocks.length > 0) {
-            setCodePanelData({
-              codeBlocks,
-              language: selectedLanguage,
-            });
-          }
-        }
-      }
-    }
-  }, [messages, selectedLanguage]);
 
   return (
     <div
@@ -451,7 +261,7 @@ function Chat() {
       style={{ backgroundColor: bgMain }}
     >
       {/* Left Sidebar - Enhanced - Fixed on desktop, overlay on mobile */}
-      <EnhancedSidebar
+      <Sidebar
         isOpen={sidebarOpen}
         onToggle={() => setSidebarOpen(!sidebarOpen)}
         isDark={isDark}
