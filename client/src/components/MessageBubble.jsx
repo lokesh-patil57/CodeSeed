@@ -5,7 +5,7 @@ export default function MessageBubble({ message, isDark, onCodeBlockClick }) {
   const isUser = message.role === "user";
 
   const bgUser = isDark ? "bg-orange-500/20 border-orange-500/30" : "bg-orange-100 border-orange-200";
-  const bgAI = isDark ? "bg-white/5 border-white/10" : "bg-gray-100 border-gray-200";
+  const bgAI = isDark ? "bg-bgMain border-none" : "bg-gray-100 border-none";
   const textUser = isDark ? "text-orange-200" : "text-orange-900";
   const textAI = isDark ? "text-white/90" : "text-gray-900";
 

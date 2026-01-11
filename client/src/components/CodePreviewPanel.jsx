@@ -9,9 +9,12 @@ import {
   Check,
   Maximize2,
   Minimize2,
+  Download,
 } from "lucide-react";
 import Editor from "@monaco-editor/react";
 import { toast } from "react-toastify";
+import JSZip from "jszip";
+import { saveAs } from "file-saver";
 
 const CodePreviewPanel = ({
   isOpen,
@@ -47,6 +50,49 @@ const CodePreviewPanel = ({
 
   const handlePublish = () => {
     toast.success("Published successfully!");
+  };
+
+  const handleExportAsZip = async () => {
+    try {
+      const zip = new JSZip();
+      
+      // Add all code blocks to the zip file
+      if (artifact.codeBlocks && artifact.codeBlocks.length > 0) {
+        artifact.codeBlocks.forEach((block, index) => {
+          const fileName = block.fileName || `file_${index + 1}.${getFileExtension(block.language)}`;
+          zip.file(fileName, block.code);
+        });
+      } else {
+        // Fallback if no codeBlocks array
+        const fileName = `code.${getFileExtension(currentLanguage)}`;
+        zip.file(fileName, currentCode);
+      }
+
+      // Generate the zip file
+      const content = await zip.generateAsync({ type: "blob" });
+      const zipFileName = `${artifact.title.replace(/\s+/g, "_")}_${new Date().toISOString().split("T")[0]}.zip`;
+      saveAs(content, zipFileName);
+      
+      toast.success("Code exported as ZIP!");
+    } catch (error) {
+      console.error("Error exporting ZIP:", error);
+      toast.error("Failed to export code as ZIP");
+    }
+  };
+
+  const getFileExtension = (language) => {
+    const extensionMap = {
+      html: "html",
+      jsx: "jsx",
+      css: "css",
+      js: "js",
+      javascript: "js",
+      typescript: "ts",
+      python: "py",
+      json: "json",
+      xml: "xml",
+    };
+    return extensionMap[language] || "txt";
   };
 
   const getLanguageMode = (lang) => {
@@ -143,6 +189,18 @@ const CodePreviewPanel = ({
               ) : (
                 <CopyIcon size={16} className={textSecondary} />
               )}
+            </button>
+
+            {/* Export as ZIP button */}
+            <button
+              onClick={handleExportAsZip}
+              className={`
+                p-2 rounded-lg transition
+                ${isDark ? "hover:bg-white/10" : "hover:bg-black/5"}
+              `}
+              title="Export as ZIP"
+            >
+              <Download size={16} className={textSecondary} />
             </button>
 
             {/* Publish button */}

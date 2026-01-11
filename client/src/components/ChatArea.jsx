@@ -210,7 +210,6 @@ const ChatArea = ({
           px-4 sm:px-6 md:px-8 py-4 shrink-0 flex-shrink-0
           transition-all duration-300 w-full
         `}
-        style={{ backgroundColor: bgMain }}
       >
         <div
           className={`
@@ -232,7 +231,7 @@ const ChatArea = ({
               ${
                 isDark
                   ? "bg-white/5 border-white/10 text-white placeholder-white/40"
-                  : "bg-black/5 border-black/10 text-gray-900 placeholder-gray-500"
+                  : "bg-[#f5f5f7] border-black/10 text-gray-900 placeholder-gray-500"
               }
             `}
             rows="3"

@@ -34,7 +34,7 @@ const Sidebar = ({
   const [editingChatId, setEditingChatId] = useState(null);
   const [editingTitle, setEditingTitle] = useState("");
 
-  const bgPanel = isDark ? "#1a1a1a" : "#ffffff";
+  const bgPanel = isDark ? "#1a1a1a" : "#f5f5f7";
   const bgSecondary = isDark ? "#141413" : "#f5f5f7";
   const textPrimary = isDark ? "text-white" : "text-gray-900";
   const textSecondary = isDark ? "text-white/60" : "text-gray-600";
@@ -54,10 +54,8 @@ const Sidebar = ({
   };
 
   const navItems = [
-    { icon: MessageSquarePlus, label: "Chats" },
-    { icon: FolderClosed, label: "Projects" },
-    { icon: Box, label: "Artifacts" },
     { icon: Code, label: "Code" },
+    { icon: MessageSquarePlus, label: "Chats" }
   ];
 
   return (
@@ -83,30 +81,46 @@ const Sidebar = ({
         style={{ backgroundColor: bgPanel }}
       >
         {/* Header with Collapse Button */}
-        <div className="px-3 py-4 border-b flex items-center justify-between" style={{ borderColor: `rgba(255,255,255,${isDark ? 0.05 : 0.05})` }}>
-          <div className={`flex items-center gap-2 flex-1 transition-opacity duration-300 ${!isOpen ? "opacity-0 w-0" : "opacity-100"}`}>
-            <div
-              className={`w-8 h-8 rounded-lg flex items-center justify-center shrink-0 ${
-                isDark ? "bg-orange-500/20" : "bg-orange-100"
+        <div
+          className="px-3 py-4 border-b flex items-center justify-between"
+          style={{ borderColor: `rgba(255,255,255,${isDark ? 0.05 : 0.05})` }}
+        >
+          <div
+            className={`flex items-center gap-2 flex-1 transition-opacity duration-300 ${
+              !isOpen ? "opacity-0 w-0" : "opacity-100"
+            }`}
+          >
+            <img
+              src="./images/logo.png"
+              className={`w-10 filter transition duration-200 ${
+                isDark ? "" : "brightness-0"
               }`}
-            >
-              <Code size={16} className={accentColor} />
-            </div>
-            <span className={`font-bold text-sm ${textPrimary}`}>
-              CodeSeed
-            </span>
+              alt="Name logo"
+            />
+            <img
+              src="./images/namelogo.png"
+              className={`w-30 filter transition duration-200 ${
+                isDark ? "" : "brightness-0"
+              }`}
+              alt="Name logo"
+            />
           </div>
-          
+
           {/* Toggle Button */}
           <button
             onClick={onToggle}
             title={isOpen ? "Collapse sidebar" : "Expand sidebar"}
             className={`
-              p-2 rounded-lg transition shrink-0
+              p-3 rounded-lg transition shrink-0 hover:cursor-pointer
               ${isDark ? "hover:bg-white/10" : "hover:bg-black/5"}
             `}
           >
-            <ChevronRight size={18} className={`${textSecondary} transition-transform ${isOpen ? "rotate-180" : ""}`} />
+            <ChevronRight
+              size={20}
+              className={`${textSecondary} transition-transform ${
+                isOpen ? "rotate-180" : ""
+              }`}
+            />
           </button>
         </div>
 
@@ -149,8 +163,14 @@ const Sidebar = ({
         )}
 
         {/* Navigation */}
-        <nav className={`${isOpen ? "px-3 py-4 space-y-1" : "px-2 py-4 space-y-2 flex flex-col items-center"}`}>
-          {navItems.map((item) => (
+        <nav
+          className={`${
+            isOpen
+              ? "px-3 py-4 space-y-1"
+              : "px-2 py-4 space-y-2 flex flex-col items-center"
+          }`}
+        >
+          {navItems.map((item) =>
             isOpen ? (
               <button
                 key={item.label}
@@ -179,7 +199,7 @@ const Sidebar = ({
                 <item.icon size={18} />
               </button>
             )
-          ))}
+          )}
         </nav>
 
         {/* Recents Section */}
@@ -208,8 +228,8 @@ const Sidebar = ({
                             ? "bg-orange-500/15 border border-orange-500/30"
                             : "bg-orange-100/50 border border-orange-200"
                           : isDark
-                            ? "hover:bg-white/5"
-                            : "hover:bg-black/5"
+                          ? "hover:bg-white/5"
+                          : "hover:bg-black/5"
                       }
                     `}
                     onClick={() => onLoadChat(chat._id)}
@@ -236,9 +256,7 @@ const Sidebar = ({
                         <div className={`text-sm truncate ${textPrimary}`}>
                           {chat.title}
                         </div>
-                        <div
-                          className={`text-xs mt-1 ${textSecondary}`}
-                        >
+                        <div className={`text-xs mt-1 ${textSecondary}`}>
                           {format(new Date(chat.updatedAt), "MMM d")}
                         </div>
 
@@ -251,7 +269,11 @@ const Sidebar = ({
                             }}
                             className={`
                               p-1.5 rounded-lg transition
-                              ${isDark ? "hover:bg-white/10" : "hover:bg-black/10"}
+                              ${
+                                isDark
+                                  ? "hover:bg-white/10"
+                                  : "hover:bg-black/10"
+                              }
                             `}
                             title="Rename chat"
                           >
@@ -343,7 +365,9 @@ const Sidebar = ({
 
         {/* Collapsed Footer Icons */}
         {!isOpen && (
-          <div className={`py-4 space-y-2 flex flex-col items-center shrink-0 border-t ${borderColor}`}>
+          <div
+            className={`py-4 space-y-2 flex flex-col items-center shrink-0 border-t ${borderColor}`}
+          >
             <button
               onClick={onSettingsOpen}
               className={`
