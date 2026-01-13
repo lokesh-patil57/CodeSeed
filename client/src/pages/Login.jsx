@@ -21,7 +21,7 @@ import {
 export default function LoginPage() {
   const navigate = useNavigate();
   const emailRef = useRef(null);
-  const { isDark, setIsDark } = useContext(AppContext);
+  const { isDark, setIsDark, setUserData } = useContext(AppContext);
   const { isLoading, login, register } = useAuthAPI();
 
   // Form state
@@ -57,27 +57,38 @@ export default function LoginPage() {
       return;
     }
 
-    const { email, password, username } = formData;
+    const { email, password, username, confirmPassword } = formData;
 
     // Perform authentication
     const result = isLogin
       ? await login(email, password)
-      : await register(email, password, username);
+      : await register(email, password, confirmPassword, username);
 
-    if (result.success && result.data) {
+    if (result.success && result.data?.user) {
+      // Update context with user data
+      setUserData(result.data.user);
+      
+      // Save user data to localStorage for Chat component
+      localStorage.setItem("user", JSON.stringify(result.data.user));
+
       const normalizedEmail = email.trim().toLowerCase();
-      const isVerified = result.data.user?.isAccountVerified;
+      const isVerified = result.data.user.isAccountVerified;
 
       if (isLogin) {
         if (isVerified) {
           localStorage.removeItem("pendingVerifyEmail");
-          navigate("/chat", { replace: true });
+          // Small delay to ensure state is updated before navigation
+          setTimeout(() => navigate("/chat", { replace: true }), 100);
         } else {
           localStorage.setItem("pendingVerifyEmail", normalizedEmail);
-          navigate("/email-verify", {
-            state: { email: normalizedEmail },
-            replace: true,
-          });
+          setTimeout(
+            () =>
+              navigate("/email-verify", {
+                state: { email: normalizedEmail },
+                replace: true,
+              }),
+            100
+          );
         }
       } else {
         // For signup, clear form and switch to login
