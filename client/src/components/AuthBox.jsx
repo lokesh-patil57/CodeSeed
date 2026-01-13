@@ -106,6 +106,29 @@ export default function AuthBox({
             </button>
           </div>
 
+          {!isLogin && (
+            <div className="relative">
+              <input
+                type={showPassword ? "text" : "password"}
+                name="confirmPassword"
+                value={formData.confirmPassword}
+                onChange={handleChange}
+                className={`w-full px-4 py-2 rounded-lg focus:outline-none focus:ring-0 transition pr-12 ${inputBg}`}
+                placeholder="Confirm your password"
+                disabled={isLoading}
+              />
+              <button
+                type="button"
+                onClick={() => setShowPassword(!showPassword)}
+                className="absolute right-3 top-1/2 transform -translate-y-1/2 text-zinc-400 hover:text-zinc-200"
+                aria-label="Toggle password visibility"
+                disabled={isLoading}
+              >
+                {showPassword ? "🙈" : "👁️"}
+              </button>
+            </div>
+          )}
+
           {isLogin && (
             <div className="flex justify-end pt-1">
               <button

@@ -4,6 +4,10 @@ import "./index.css";
 import App from "./App.jsx";
 import { BrowserRouter } from "react-router-dom";
 import { AppContext, AppProvider } from "./context/AppContext.jsx";
+import { initErrorFilter } from "./utils/errorFilter.js";
+
+// Initialize error filtering early to catch all errors
+initErrorFilter();
 
 createRoot(document.getElementById("root")).render(
   <BrowserRouter>

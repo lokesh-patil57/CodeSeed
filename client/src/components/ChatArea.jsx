@@ -96,14 +96,21 @@ const ChatArea = ({
                       }`}
                     >
                       <div className={`space-y-1.5 ${isDark ? "text-white/80" : "text-gray-700"}`}>
-                        {artifact.details.split("\n").map((line, lineIdx) => (
-                          line.trim() && (
+                        {artifact.details.split("\n").map((line, lineIdx) => {
+                          const trimmedLine = line.trim();
+                          if (!trimmedLine) return null;
+                          
+                          // Check if line already starts with a bullet point character
+                          const bulletMatch = trimmedLine.match(/^[-•*]\s*(.+)$/);
+                          const text = bulletMatch ? bulletMatch[1] : trimmedLine;
+                          
+                          return (
                             <div key={lineIdx} className="flex items-start gap-2">
-                              <span className="text-orange-400 mt-1 font-bold text-xs">•</span>
-                              <span>{line.trim()}</span>
+                              <span className="text-orange-400 mt-1 font-bold text-xs shrink-0">•</span>
+                              <span className="flex-1">{text}</span>
                             </div>
-                          )
-                        ))}
+                          );
+                        })}
                       </div>
                     </div>
                   )}
