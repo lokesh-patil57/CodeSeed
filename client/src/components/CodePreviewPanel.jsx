@@ -112,6 +112,21 @@ const CodePreviewPanel = ({
 
   return (
     <>
+      {/* Custom styles for dropdown */}
+      <style>{`
+        .version-selector-dropdown option {
+          background-color: #000000 !important;
+          color: #ffffff !important;
+        }
+        .version-selector-dropdown:focus {
+          outline: none;
+          border-color: rgba(255, 255, 255, 0.3) !important;
+        }
+        .version-selector-dropdown:hover {
+          background-color: rgba(0, 0, 0, 0.8) !important;
+        }
+      `}</style>
+      
       {/* Overlay backdrop - click to close */}
       {isOpen && (
         <div
@@ -161,18 +176,33 @@ const CodePreviewPanel = ({
             <select
               value={selectedVersion}
               onChange={(e) => setSelectedVersion(e.target.value)}
-              className={`
-                rounded-lg px-3 py-2 text-xs font-medium border
-                focus:outline-none transition
-                ${isDark
-                  ? "bg-white/5 border-white/10 text-white"
-                  : "bg-black/5 border-black/10 text-gray-900"
-                }
-              `}
+              className="version-selector-dropdown"
+              style={{
+                backgroundColor: '#000000',
+                color: '#ffffff',
+                borderRadius: '0.5rem',
+                padding: '0.5rem 2rem 0.5rem 0.75rem',
+                fontSize: '0.75rem',
+                fontWeight: '500',
+                border: isDark ? '1px solid rgba(255, 255, 255, 0.2)' : '1px solid rgba(0, 0, 0, 0.2)',
+                outline: 'none',
+                cursor: 'pointer',
+                transition: 'all 0.2s',
+                appearance: 'none',
+                backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='white' d='M6 9L1 4h10z'/%3E%3C/svg%3E")`,
+                backgroundRepeat: 'no-repeat',
+                backgroundPosition: 'right 0.5rem center',
+              }}
+              onMouseEnter={(e) => {
+                e.target.style.backgroundColor = 'rgba(0, 0, 0, 0.8)';
+              }}
+              onMouseLeave={(e) => {
+                e.target.style.backgroundColor = '#000000';
+              }}
             >
-              <option value="v1">v1</option>
-              <option value="v2">v2</option>
-              <option value="latest">Latest</option>
+              <option value="v1" style={{ backgroundColor: '#000000', color: '#ffffff' }}>v1</option>
+              <option value="v2" style={{ backgroundColor: '#000000', color: '#ffffff' }}>v2</option>
+              <option value="latest" style={{ backgroundColor: '#000000', color: '#ffffff' }}>Latest</option>
             </select>
 
             {/* Copy button */}
