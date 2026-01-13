@@ -115,6 +115,29 @@ IMPORTANT INSTRUCTIONS:
 7. Use best practices for the selected framework
 8. If the user asks to modify existing code, provide the complete updated code
 
+COMPONENT DESCRIPTION FORMAT (REQUIRED):
+- For EACH component you generate, provide a clear description BEFORE the code block
+- Use bullet points format with dashes (-) or asterisks (*) to list component features
+- Include 3-5 bullet points describing:
+  * What the component does
+  * Key features or functionality
+  * Design characteristics
+  * Interactive elements (if any)
+  * Responsive behavior
+- Format example:
+  Here's a [Component Name] component:
+  
+  - Feature 1 description
+  - Feature 2 description
+  - Feature 3 description
+  
+  \`\`\`language
+  [code here]
+  \`\`\`
+
+- If generating MULTIPLE components, provide descriptions for ALL of them
+- Each component should have its own description section before its code block
+
 Framework-specific guidelines:
 - For HTML + CSS: Provide complete HTML with embedded CSS
 - For React: Provide functional components with hooks
@@ -122,7 +145,7 @@ Framework-specific guidelines:
 - For Vue: Provide Vue single-file component structure
 - For Next.js: Use Next.js conventions
 
-Always format your response with proper markdown, including code blocks.`;
+Always format your response with proper markdown, including code blocks and bullet point descriptions.`;
 
     // Add system prompt and current message
     const ai = getGeminiClient();
@@ -291,6 +314,30 @@ IMPORTANT:
 7. For HTML+CSS, include inline CSS or style tags
 8. For Tailwind, use Tailwind utility classes
 
+COMPONENT DESCRIPTION FORMAT (REQUIRED):
+- Provide a clear description BEFORE the code block
+- Use bullet points format with dashes (-) or asterisks (*) to list component features
+- Include 3-5 bullet points describing:
+  * What the component does
+  * Key features or functionality
+  * Design characteristics
+  * Interactive elements (if any)
+  * Responsive behavior
+- Format example:
+  
+  Here's a [Component Name] component:
+  
+  - Feature 1 description
+  - Feature 2 description
+  - Feature 3 description
+  
+  \`\`\`language
+  [code here]
+  \`\`\`
+
+- If generating MULTIPLE components, provide descriptions for ALL of them
+- Each component should have its own description section before its code block
+
 Code block format:
 \`\`\`language
 code here
@@ -429,36 +476,69 @@ function extractCodeBlocks(content) {
       description = `Component ${componentIndex}`;
     }
 
-    // Extract component details (bullet points) from text after the code block
+    // Extract component details (bullet points) from text BEFORE and AFTER the code block
+    // First, try to find bullet points before the code block (preferred location)
+    const textBeforeCode = content.substring(Math.max(0, match.index - 1000), match.index);
     const textAfterCodeBlock = content.substring(match.index + match[0].length);
     const nextCodeBlockMatch = /```/.exec(textAfterCodeBlock);
     const nextCodeBlockIndex = nextCodeBlockMatch ? match.index + match[0].length + nextCodeBlockMatch.index : content.length;
-    const textBeforeNextBlock = content.substring(match.index + match[0].length, nextCodeBlockIndex);
+    const textAfterCode = content.substring(match.index + match[0].length, nextCodeBlockIndex);
     
-    // Extract bullet points and features (text with - or • or numbered lists)
+    // Extract bullet points and features (text with - or • or * or numbered lists)
     const bulletPointRegex = /^[\s]*[-•*]\s+(.+)$/gm;
     const numberedRegex = /^[\s]*\d+\.\s+(.+)$/gm;
     const detailLines = [];
     
+    // Look for bullet points BEFORE the code block first (more reliable)
+    let searchText = textBeforeCode;
     let bulletMatch;
-    while ((bulletMatch = bulletPointRegex.exec(textBeforeNextBlock)) !== null) {
-      detailLines.push(bulletMatch[1].trim());
+    while ((bulletMatch = bulletPointRegex.exec(searchText)) !== null) {
+      const bulletText = bulletMatch[1].trim();
+      // Only add if it's not empty and not part of code
+      if (bulletText && !bulletText.startsWith('```')) {
+        detailLines.push(bulletText);
+      }
     }
     
     let numberedMatch;
-    while ((numberedMatch = numberedRegex.exec(textBeforeNextBlock)) !== null) {
-      detailLines.push(numberedMatch[1].trim());
+    while ((numberedMatch = numberedRegex.exec(searchText)) !== null) {
+      const numberedText = numberedMatch[1].trim();
+      if (numberedText && !numberedText.startsWith('```')) {
+        detailLines.push(numberedText);
+      }
+    }
+    
+    // If no bullet points found before, look AFTER the code block
+    if (detailLines.length === 0) {
+      searchText = textAfterCode;
+      while ((bulletMatch = bulletPointRegex.exec(searchText)) !== null) {
+        const bulletText = bulletMatch[1].trim();
+        if (bulletText && !bulletText.startsWith('```')) {
+          detailLines.push(bulletText);
+        }
+      }
+      
+      while ((numberedMatch = numberedRegex.exec(searchText)) !== null) {
+        const numberedText = numberedMatch[1].trim();
+        if (numberedText && !numberedText.startsWith('```')) {
+          detailLines.push(numberedText);
+        }
+      }
     }
 
     // If we found bullet points/features, use them as component details
     if (detailLines.length > 0) {
       componentDetails = detailLines.join("\n");
     } else {
-      // Otherwise, extract the paragraph before the code block as description
-      const textBeforeCode = content.substring(Math.max(0, match.index - 500), match.index);
-      const paragraphMatch = textBeforeCode.match(/([^.\n]*[.!?])\s*$/);
-      if (paragraphMatch) {
-        componentDetails = paragraphMatch[1].trim();
+      // Otherwise, try to extract descriptive text before the code block
+      // Look for sentences that describe the component
+      const sentencesBeforeCode = textBeforeCode.match(/([^.!?\n]+[.!?])/g);
+      if (sentencesBeforeCode && sentencesBeforeCode.length > 0) {
+        // Get the last 1-2 sentences before the code block
+        const relevantSentences = sentencesBeforeCode.slice(-2).join(' ').trim();
+        if (relevantSentences.length > 10 && relevantSentences.length < 300) {
+          componentDetails = relevantSentences;
+        }
       }
     }
 

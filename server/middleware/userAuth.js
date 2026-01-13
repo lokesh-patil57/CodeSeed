@@ -1,4 +1,5 @@
 import jwt from "jsonwebtoken";
+import tokenBlacklist from "../utils/tokenBlacklist.js";
 
 const userAuth = async (req, res, next) => {
   const { token } = req.cookies;
@@ -7,6 +8,14 @@ const userAuth = async (req, res, next) => {
     return res.status(401).json({
       success: false,
       message: "No authentication token, access denied",
+    });
+  }
+
+  // Check if token is blacklisted
+  if (tokenBlacklist.has(token)) {
+    return res.status(401).json({
+      success: false,
+      message: "Token has been revoked. Please log in again.",
     });
   }
 
