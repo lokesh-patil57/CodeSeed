@@ -30,10 +30,6 @@ export const useAuthAPI = () => {
         };
       }
 
-      if (data.user) {
-        localStorage.setItem("user", JSON.stringify(data.user));
-      }
-
       toast.success(data.message || "Login successful!");
       return {
         success: true,
@@ -42,7 +38,8 @@ export const useAuthAPI = () => {
       };
     } catch (error) {
       console.error("Login error:", error);
-      const errorMessage = error.message || "Unable to reach the server. Please try again.";
+      const errorMessage =
+        error.message || "Unable to reach the server. Please try again.";
       toast.error(errorMessage);
       return {
         success: false,
@@ -54,7 +51,7 @@ export const useAuthAPI = () => {
     }
   }, []);
 
-  const register = useCallback(async (email, password, username) => {
+  const register = useCallback(async (email, password, confirmPassword, username) => {
     try {
       setIsLoading(true);
       const response = await fetch(`${BACKEND_URL}/api/auth/register`, {
@@ -62,7 +59,12 @@ export const useAuthAPI = () => {
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ email, password, username }),
+        body: JSON.stringify({
+          email,
+          password,
+          confirmPassword,
+          username,
+        }),
         credentials: "include",
       });
 
@@ -78,10 +80,6 @@ export const useAuthAPI = () => {
         };
       }
 
-      if (data.user) {
-        localStorage.setItem("user", JSON.stringify(data.user));
-      }
-
       toast.success(data.message || "Registration successful!");
       return {
         success: true,
@@ -90,7 +88,8 @@ export const useAuthAPI = () => {
       };
     } catch (error) {
       console.error("Registration error:", error);
-      const errorMessage = error.message || "Unable to reach the server. Please try again.";
+      const errorMessage =
+        error.message || "Unable to reach the server. Please try again.";
       toast.error(errorMessage);
       return {
         success: false,
@@ -102,9 +101,51 @@ export const useAuthAPI = () => {
     }
   }, []);
 
+  const logout = useCallback(async () => {
+    try {
+      setIsLoading(true);
+      const response = await fetch(`${BACKEND_URL}/api/auth/logout`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        credentials: "include",
+      });
+
+      const data = await response.json();
+
+      if (!response.ok || !data.success) {
+        const errorMessage = data.message || "Logout failed";
+        toast.error(errorMessage);
+        return {
+          success: false,
+          error: errorMessage,
+        };
+      }
+
+      toast.success(data.message || "Logged out successfully!");
+      return {
+        success: true,
+        error: null,
+      };
+    } catch (error) {
+      console.error("Logout error:", error);
+      const errorMessage =
+        error.message || "Unable to reach the server. Please try again.";
+      toast.error(errorMessage);
+      return {
+        success: false,
+        error: errorMessage,
+      };
+    } finally {
+      setIsLoading(false);
+    }
+  }, []);
+
   return {
     isLoading,
     login,
     register,
+    logout,
   };
 };

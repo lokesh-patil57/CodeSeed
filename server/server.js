@@ -6,11 +6,16 @@ import connectDB from "./config/db.js";
 import authRoutes from "./routes/authRoutes.js";
 import userRouter from "./routes/userRoutes.js";
 import chatRoutes from "./routes/chatRoutes.js";
+import { apiLimiter } from "./middleware/rateLimiter.js";
 
 const app = express();
 const port = process.env.PORT || 3000;
 const allowedOrigin = process.env.CLIENT_URL || "http://localhost:5173";
 connectDB();
+
+// Trust proxy for correct IP detection (important for audit logging)
+// Set to true if behind a reverse proxy (nginx, load balancer, etc.)
+app.set('trust proxy', process.env.TRUST_PROXY === 'true' || false);
 
 app.use(express.json());
 app.use(
@@ -21,18 +26,23 @@ app.use(
 );
 app.use(cookieParser());
 
+// Apply general rate limiting to all API routes
+app.use("/api/", apiLimiter);
+
 // Security headers for iframe and preview functionality
 app.use((req, res, next) => {
   res.setHeader("Cross-Origin-Opener-Policy", "same-origin-allow-popups");
   res.setHeader("Cross-Origin-Embedder-Policy", "unsafe-none");
+  // Add security headers
+  res.setHeader("X-Content-Type-Options", "nosniff");
+  res.setHeader("X-Frame-Options", "SAMEORIGIN");
+  res.setHeader("X-XSS-Protection", "1; mode=block");
   next();
 });
-
 
 //API endpoints
 app.get("/", (req, res) => {
   res.send("Hello World!");
-
 });
 
 app.use("/api/auth", authRoutes);
@@ -42,5 +52,4 @@ app.use("/api/chat", chatRoutes);
 app.listen(port, () => {
   console.log(`Server is running on port ${port}`);
   console.log(`http://localhost:3000/`);
-
 });

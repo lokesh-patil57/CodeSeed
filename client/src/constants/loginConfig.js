@@ -10,6 +10,7 @@ export const FORM_INITIAL_STATE = {
   username: "",
   email: "",
   password: "",
+  confirmPassword: "",
 };
 
 export const MEET_SECTIONS = [
