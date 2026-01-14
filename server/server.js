@@ -10,7 +10,14 @@ import { apiLimiter } from "./middleware/rateLimiter.js";
 
 const app = express();
 const port = process.env.PORT || 3000;
-const allowedOrigin = process.env.CLIENT_URL || "http://localhost:5173";
+
+// Allowed frontend origins (local + deployed)
+const allowedOrigins = [
+  process.env.CLIENT_URL, // preferred: set on Render
+  "http://localhost:5173", // local dev (Vite default)
+  "https://codeseed-cebl.onrender.com", // deployed frontend on Render
+].filter(Boolean);
+
 connectDB();
 
 // Trust proxy for correct IP detection (important for audit logging)
@@ -20,7 +27,13 @@ app.set('trust proxy', process.env.TRUST_PROXY === 'true' || false);
 app.use(express.json());
 app.use(
   cors({
-    origin: allowedOrigin,
+    origin: (origin, callback) => {
+      // Allow non-browser requests (no origin) and known frontend origins
+      if (!origin || allowedOrigins.includes(origin)) {
+        return callback(null, true);
+      }
+      return callback(new Error("Not allowed by CORS"));
+    },
     credentials: true,
   })
 );
