@@ -15,12 +15,23 @@ import auditLogger from "../utils/auditLogger.js";
 
 // Helper to get client IP and user agent
 const getClientInfo = (req) => ({
-  ip: req.ip || req.connection?.remoteAddress || req.headers['x-forwarded-for']?.split(',')[0] || 'unknown',
-  userAgent: req.headers['user-agent'] || 'unknown',
+  ip: req.ip || req.connection?.remoteAddress || req.headers["x-forwarded-for"]?.split(",")[0] || "unknown",
+  userAgent: req.headers["user-agent"] || "unknown",
 });
 
 const jwtSign = (payload) =>
   jwt.sign(payload, process.env.JWT_SECRET, { expiresIn: "7d" });
+
+// Detect production-like environment (Render sets RENDER=true)
+const isProdLike = process.env.NODE_ENV === "production" || process.env.RENDER === "true";
+
+// Centralized cookie options for auth token
+const getAuthCookieOptions = () => ({
+  httpOnly: true,
+  secure: isProdLike,
+  sameSite: isProdLike ? "none" : "lax",
+  maxAge: 7 * 24 * 60 * 60 * 1000,
+});
 
 export const register = async (req, res) => {
   const { username, email, password, confirmPassword } = req.body;
@@ -68,15 +79,8 @@ export const register = async (req, res) => {
 
     const token = jwtSign({ id: newUser._id });
 
-    // In production we need SameSite=None so the cookie is sent
-    // from your frontend origin (codeseed-cebl.onrender.com) to
-    // your backend origin (codeseed-n73l.onrender.com)
-    res.cookie("token", token, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
-      sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
-      maxAge: 7 * 24 * 60 * 60 * 1000,
-    });
+    // Set auth cookie; in Render (prod-like) this will be SameSite=None; Secure
+    res.cookie("token", token, getAuthCookieOptions());
 
     // Log registration
     auditLogger.logRegister(newUser._id.toString(), newUser.email, getClientInfo(req));
@@ -181,12 +185,7 @@ export const login = async (req, res) => {
 
     const token = jwtSign({ id: user._id });
 
-    res.cookie("token", token, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
-      sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
-      maxAge: 7 * 24 * 60 * 60 * 1000,
-    });
+    res.cookie("token", token, getAuthCookieOptions());
 
     // Log successful login
     auditLogger.logLogin(user._id.toString(), user.email, true, getClientInfo(req));
@@ -254,8 +253,8 @@ export const logout = async (req, res) => {
 
     res.clearCookie("token", {
       httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
-      sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
+      secure: isProdLike,
+      sameSite: isProdLike ? "none" : "lax",
     });
     
     return res.json({ success: true, message: "Logged out successfully" });
@@ -264,8 +263,8 @@ export const logout = async (req, res) => {
     // Still clear cookie even if logging fails
     res.clearCookie("token", {
       httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
-      sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
+      secure: isProdLike,
+      sameSite: isProdLike ? "none" : "lax",
     });
     return res.json({ success: true, message: "Logged out successfully" });
   }
@@ -813,12 +812,7 @@ For support, visit our help center or contact support@codeseed.com`,
 
     const token = jwtSign({ id: user._id });
 
-    res.cookie("token", token, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
-      sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
-      maxAge: 7 * 24 * 60 * 60 * 1000,
-    });
+    res.cookie("token", token, getAuthCookieOptions());
 
     return res.json({
       success: true,
