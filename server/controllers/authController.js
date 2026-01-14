@@ -68,10 +68,13 @@ export const register = async (req, res) => {
 
     const token = jwtSign({ id: newUser._id });
 
+    // In production we need SameSite=None so the cookie is sent
+    // from your frontend origin (codeseed-cebl.onrender.com) to
+    // your backend origin (codeseed-n73l.onrender.com)
     res.cookie("token", token, {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
-      sameSite: "strict",
+      sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
       maxAge: 7 * 24 * 60 * 60 * 1000,
     });
 
@@ -181,7 +184,7 @@ export const login = async (req, res) => {
     res.cookie("token", token, {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
-      sameSite: "strict",
+      sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
       maxAge: 7 * 24 * 60 * 60 * 1000,
     });
 
@@ -252,7 +255,7 @@ export const logout = async (req, res) => {
     res.clearCookie("token", {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
-      sameSite: "strict",
+      sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
     });
     
     return res.json({ success: true, message: "Logged out successfully" });
@@ -262,7 +265,7 @@ export const logout = async (req, res) => {
     res.clearCookie("token", {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
-      sameSite: "strict",
+      sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
     });
     return res.json({ success: true, message: "Logged out successfully" });
   }
@@ -813,7 +816,7 @@ For support, visit our help center or contact support@codeseed.com`,
     res.cookie("token", token, {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
-      sameSite: "strict",
+      sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
       maxAge: 7 * 24 * 60 * 60 * 1000,
     });
 
