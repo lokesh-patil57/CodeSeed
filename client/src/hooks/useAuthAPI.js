@@ -1,7 +1,11 @@
 import { useState, useCallback } from "react";
 import { toast } from "react-toastify";
 
-const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
+// Prefer VITE_API_URL (for deployed backend), then VITE_BACKEND_URL, then localhost
+const BACKEND_URL =
+  import.meta.env.VITE_API_URL ||
+  import.meta.env.VITE_BACKEND_URL ||
+  "http://localhost:3000";
 
 export const useAuthAPI = () => {
   const [isLoading, setIsLoading] = useState(false);
