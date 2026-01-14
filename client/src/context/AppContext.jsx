@@ -3,7 +3,11 @@ import React, { createContext, useState, useCallback, useEffect } from "react";
 export const AppContext = createContext();
 
 export const AppProvider = ({ children }) => {
-  const backendUrl = import.meta.env.VITE_BACKEND_URL;
+  // Prefer VITE_API_URL (for deployed backend), then VITE_BACKEND_URL, then localhost
+  const backendUrl =
+    import.meta.env.VITE_API_URL ||
+    import.meta.env.VITE_BACKEND_URL ||
+    "http://localhost:3000";
   const [isDark, setIsDark] = useState(true);
   const [isLoggingIn, setIsLoggingIn] = useState(false);
   const [userData, setUserData] = useState(null);
