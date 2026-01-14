@@ -11,7 +11,11 @@ const EmailVerify = () => {
   const [otp, setOtp] = useState("");
   const [isSending, setIsSending] = useState(false);
   const [isVerifying, setIsVerifying] = useState(false);
-  const backendUrl = import.meta.env.VITE_BACKEND_URL;
+  // Prefer VITE_API_URL (for deployed backend), then VITE_BACKEND_URL, then localhost
+  const backendUrl =
+    import.meta.env.VITE_API_URL ||
+    import.meta.env.VITE_BACKEND_URL ||
+    "http://localhost:3000";
 
   useEffect(() => {
     const storedEmail =
