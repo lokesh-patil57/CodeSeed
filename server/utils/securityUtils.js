@@ -42,7 +42,7 @@ export const validatePasswordStrength = (password) => {
 export const getSafeErrorMessage = (error, context) => {
   const errorMap = {
     register: {
-      userExists: "Registration failed. Please try again or contact support.",
+      userExists: "An account with this email already exists. Please log in or use a different email.",
       validationError: "Invalid input provided",
       serverError: "An error occurred during registration",
     },
@@ -58,5 +58,5 @@ export const getSafeErrorMessage = (error, context) => {
     },
   };
 
-  return errorMap[context]?.serverError || "An error occurred";
+  return errorMap[context]?.[error] || errorMap[context]?.serverError || "An error occurred";
 };

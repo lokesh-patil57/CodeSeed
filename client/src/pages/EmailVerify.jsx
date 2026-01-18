@@ -45,7 +45,12 @@ const EmailVerify = () => {
           method: "POST",
           credentials: "include",
         });
-        const data = await res.json();
+        let data;
+        try {
+          data = await res.json();
+        } catch (_) {
+          data = { success: false, message: "Invalid response from server" };
+        }
         if (data.success) {
           if (!silent) toast.success("Verification code sent to your email.");
         } else if (!silent) {

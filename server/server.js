@@ -65,4 +65,7 @@ app.use("/api/chat", chatRoutes);
 app.listen(port, () => {
   console.log(`Server is running on port ${port}`);
   console.log(`http://localhost:3000/`);
+  if (!process.env.SENDER_EMAIL || !process.env.SMTP_USER || !process.env.SMTP_PASS) {
+    console.warn("[Email] SENDER_EMAIL, SMTP_USER, or SMTP_PASS not set. OTP and welcome emails will be skipped. Set these in Render (or .env) to enable email.");
+  }
 });

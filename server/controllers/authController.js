@@ -13,17 +13,37 @@ import {
 import tokenBlacklist from "../utils/tokenBlacklist.js";
 import auditLogger from "../utils/auditLogger.js";
 
-// Helper to get client IP and user agent
-const getClientInfo = (req) => ({
-  ip: req.ip || req.connection?.remoteAddress || req.headers["x-forwarded-for"]?.split(",")[0] || "unknown",
-  userAgent: req.headers["user-agent"] || "unknown",
-});
+// Helper to get client IP and user agent (never throws)
+const getClientInfo = (req) => {
+  try {
+    const xff = req?.headers?.["x-forwarded-for"];
+    const ip = (typeof xff === "string" ? xff.split(",")[0]?.trim() : null) || req?.ip || req?.connection?.remoteAddress || "unknown";
+    const ua = (typeof req?.headers?.["user-agent"] === "string" ? req.headers["user-agent"] : null) || "unknown";
+    return { ip: ip || "unknown", userAgent: ua || "unknown" };
+  } catch (_) {
+    return { ip: "unknown", userAgent: "unknown" };
+  }
+};
 
 const jwtSign = (payload) =>
   jwt.sign(payload, process.env.JWT_SECRET, { expiresIn: "7d" });
 
 // Detect production-like environment (Render sets RENDER=true)
 const isProdLike = process.env.NODE_ENV === "production" || process.env.RENDER === "true";
+
+// Safe email sender: never throws; logs and skips if SMTP not configured or send fails.
+// Ensures registration/login/OTP succeed even when email (Brevo) is misconfigured.
+const sendEmailSafe = async (opts) => {
+  if (!process.env.SENDER_EMAIL || !process.env.SMTP_USER || !process.env.SMTP_PASS) {
+    console.warn("[Email] SENDER_EMAIL, SMTP_USER, or SMTP_PASS not set; skipping send. Set these in Render (or .env) for OTP and welcome emails.");
+    return;
+  }
+  try {
+    await transporter.sendMail(opts);
+  } catch (err) {
+    console.error("[Email] sendMail failed:", err?.message || err);
+  }
+};
 
 // Centralized cookie options for auth token
 const getAuthCookieOptions = () => ({
@@ -138,7 +158,7 @@ This is an automated message. Please do not reply to this email.
 For support, visit our help center or contact support@codeseed.com`,
     };
 
-    await transporter.sendMail(welcomeEmail);
+    await sendEmailSafe(welcomeEmail);
 
     return res.status(201).json({
       success: true,
@@ -272,31 +292,32 @@ export const logout = async (req, res) => {
 
 export const sendVerificationOtp = async (req, res) => {
   try {
-    const userId = req.user.id;
-    const user = await User.findById(userId);
+    const userId = req.user?.id;
+    if (!userId) {
+      return res.status(401).json({ success: false, message: "Authentication required" });
+    }
 
+    const user = await User.findById(userId);
     if (!user) {
-      return res
-        .status(404)
-        .json({ success: false, message: "User not found" });
+      return res.status(404).json({ success: false, message: "User not found" });
     }
 
     if (user.isAccountVerified) {
-      return res
-        .status(400)
-        .json({ success: false, message: "Account already verified" });
+      return res.status(400).json({ success: false, message: "Account already verified" });
     }
 
     const otp = generateSecureOtp();
-
     user.verifyOtp = otp;
     user.otpExpiry = Date.now() + 10 * 60 * 1000;
     await user.save();
 
-    // Log OTP request
-    auditLogger.logOtpRequest(user._id.toString(), user.email, "verification", getClientInfo(req));
+    try {
+      auditLogger.logOtpRequest(user._id.toString(), user.email, "verification", getClientInfo(req));
+    } catch (auditErr) {
+      console.warn("[sendVerificationOtp] audit log failed:", auditErr?.message);
+    }
 
-    await transporter.sendMail({
+    await sendEmailSafe({
       from: process.env.SENDER_EMAIL,
       to: user.email,
       subject: "CodeSeed: Email Verification Code",
@@ -341,7 +362,7 @@ For support, visit our help center or contact support@codeseed.com`,
 
     return res.json({ success: true, message: "OTP sent successfully" });
   } catch (error) {
-    console.error(error);
+    console.error("[sendVerificationOtp] error:", error?.message || error, error?.stack);
     return res.status(500).json({ success: false, message: "Server error" });
   }
 };
@@ -381,7 +402,7 @@ export const verifyEmail = async (req, res) => {
     auditLogger.logEmailVerification(user._id.toString(), user.email, getClientInfo(req));
 
     // Send verification success email
-    await transporter.sendMail({
+    await sendEmailSafe({
       from: process.env.SENDER_EMAIL,
       to: user.email,
       subject: "CodeSeed: Email Verified Successfully",
@@ -507,7 +528,7 @@ export const sendResetPasswordOtp = async (req, res) => {
     // Log password reset request
     auditLogger.logPasswordResetRequest(user._id.toString(), user.email, getClientInfo(req));
 
-    await transporter.sendMail({
+    await sendEmailSafe({
       from: process.env.SENDER_EMAIL,
       to: user.email,
       subject: "CodeSeed: Password Reset Verification Code",
@@ -625,7 +646,7 @@ export const resetPassword = async (req, res) => {
     auditLogger.logPasswordReset(user._id.toString(), user.email, getClientInfo(req));
 
     // Send password reset success email
-    await transporter.sendMail({
+    await sendEmailSafe({
       from: process.env.SENDER_EMAIL,
       to: user.email,
       subject: "CodeSeed: Password Reset Successful",
@@ -737,7 +758,7 @@ export const googleLogin = async (req, res) => {
       });
 
       // Send welcome email
-      await transporter.sendMail({
+      await sendEmailSafe({
         from: process.env.SENDER_EMAIL,
         to: user.email,
         subject: "Welcome to CodeSeed - Your AI Partner for Problem Solving",
