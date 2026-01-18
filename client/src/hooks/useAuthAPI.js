@@ -81,6 +81,7 @@ export const useAuthAPI = () => {
           success: false,
           error: errorMessage,
           data: null,
+          status: response.status,
         };
       }
 
@@ -99,6 +100,7 @@ export const useAuthAPI = () => {
         success: false,
         error: errorMessage,
         data: null,
+        status: 0,
       };
     } finally {
       setIsLoading(false);

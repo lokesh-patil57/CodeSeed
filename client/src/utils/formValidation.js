@@ -53,11 +53,12 @@ export const validateLoginForm = (email, password) => {
  * Validate signup form
  * @param {string} email - Email address
  * @param {string} password - Password
+ * @param {string} confirmPassword - Confirm password
  * @param {string} username - Username
  * @returns {string} Error message or empty string
  */
-export const validateSignupForm = (email, password, username) => {
-  if (!email || !password || !username) {
+export const validateSignupForm = (email, password, confirmPassword, username) => {
+  if (!email || !password || !confirmPassword || !username) {
     return "All fields are required.";
   }
 
@@ -71,6 +72,10 @@ export const validateSignupForm = (email, password, username) => {
 
   if (!isValidPassword(password)) {
     return `Password must be at least ${FORM_VALIDATION_RULES.PASSWORD_MIN_LENGTH} characters long.`;
+  }
+
+  if (password !== confirmPassword) {
+    return "Passwords do not match.";
   }
 
   return "";

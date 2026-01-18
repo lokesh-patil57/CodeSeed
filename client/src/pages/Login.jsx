@@ -47,10 +47,12 @@ export default function LoginPage() {
   };
 
   const handleSubmit = async () => {
+    if (isLoading) return;
+
     // Validate form
     const validationError = isLogin
       ? validateLoginForm(formData.email, formData.password)
-      : validateSignupForm(formData.email, formData.password, formData.username);
+      : validateSignupForm(formData.email, formData.password, formData.confirmPassword, formData.username);
 
     if (validationError) {
       setFormError(validationError);
@@ -97,6 +99,11 @@ export default function LoginPage() {
       }
     } else {
       setFormError(result.error || "Authentication failed");
+      // On 409 (email already exists): switch to login and prefill email so user can sign in
+      if (!isLogin && result.status === 409) {
+        setIsLogin(true);
+        setFormData({ ...FORM_INITIAL_STATE, email: email.trim() });
+      }
     }
   };
 
