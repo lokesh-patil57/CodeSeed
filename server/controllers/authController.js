@@ -34,14 +34,24 @@ const isProdLike = process.env.NODE_ENV === "production" || process.env.RENDER =
 // Safe email sender: never throws; logs and skips if SMTP not configured or send fails.
 // Ensures registration/login/OTP succeed even when email (Brevo) is misconfigured.
 const sendEmailSafe = async (opts) => {
+  // Step 1 – Force-test: check env in Render Logs after clicking Send OTP
+  console.log("EMAIL ENV CHECK:", {
+    SENDER_EMAIL: process.env.SENDER_EMAIL,
+    SMTP_USER: process.env.SMTP_USER,
+    SMTP_PASS: process.env.SMTP_PASS ? "SET" : "MISSING",
+  });
+
   if (!process.env.SENDER_EMAIL || !process.env.SMTP_USER || !process.env.SMTP_PASS) {
-    console.warn("[Email] SENDER_EMAIL, SMTP_USER, or SMTP_PASS not set; skipping send. Set these in Render (or .env) for OTP and welcome emails.");
-    return;
+    console.warn("[Email] skipping send. Set SENDER_EMAIL, SMTP_USER, SMTP_PASS in Render (or .env).");
+    return false;
   }
   try {
     await transporter.sendMail(opts);
+    console.log("[Email] sent successfully to", opts.to);
+    return true;
   } catch (err) {
     console.error("[Email] sendMail failed:", err?.message || err);
+    return false;
   }
 };
 
@@ -317,7 +327,7 @@ export const sendVerificationOtp = async (req, res) => {
       console.warn("[sendVerificationOtp] audit log failed:", auditErr?.message);
     }
 
-    await sendEmailSafe({
+    const sent = await sendEmailSafe({
       from: process.env.SENDER_EMAIL,
       to: user.email,
       subject: "CodeSeed: Email Verification Code",
@@ -359,6 +369,7 @@ The CodeSeed Team
 This is an automated message. Please do not reply to this email.
 For support, visit our help center or contact support@codeseed.com`,
     });
+    if (sent) console.log("[sendVerificationOtp] email sent");
 
     return res.json({ success: true, message: "OTP sent successfully" });
   } catch (error) {

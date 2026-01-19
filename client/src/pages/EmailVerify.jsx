@@ -41,6 +41,7 @@ const EmailVerify = () => {
       if (!backendUrl) return;
       setIsSending(true);
       try {
+        // credentials: "include" sends cookies (auth token) – required; without it backend sees req.user undefined → 500
         const res = await fetch(`${backendUrl}/api/auth/send-verify-otp`, {
           method: "POST",
           credentials: "include",
