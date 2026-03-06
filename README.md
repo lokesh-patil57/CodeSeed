@@ -5,6 +5,17 @@
 ![Node](https://img.shields.io/badge/node-v16+-brightgreen.svg)
 ![React](https://img.shields.io/badge/react-18.0+-blue.svg)
 
+<div align="center">
+  <br />
+      <img src="public/images/CodeSeed1.png" alt="Project Banner">
+  <br />
+</div>
+<div align="center">
+  <br />
+      <img src="public/images/CodeSeed2.png" alt="Project Banner">
+  <br />
+</div>
+
 ## 📋 Table of Contents
 
 - [About CodeSeed](#about-codeseed)
