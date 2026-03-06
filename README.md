@@ -7,12 +7,12 @@
 
 <div >
   <br />
-      <img src="public/images/CodeSeed1.png" alt="Project Banner">
+      <img src="client/public/images/CodeSeed1.png" alt="Project Banner">
   <br />
 </div>
 <div >
   <br />
-      <img src="public/images/CodeSeed2.png" alt="Project Banner">
+      <img src="client/public/images/CodeSeed2.png" alt="Project Banner">
   <br />
 </div>
 
