@@ -1,11 +1,6 @@
 import { useState, useCallback } from "react";
 import { toast } from "react-toastify";
-
-// Prefer VITE_API_URL (for deployed backend), then VITE_BACKEND_URL, then localhost
-const BACKEND_URL =
-  import.meta.env.VITE_API_URL ||
-  import.meta.env.VITE_BACKEND_URL ||
-  "http://localhost:3000";
+import { API_BASE_URL } from "../constants/apiConfig";
 
 export const useAuthAPI = () => {
   const [isLoading, setIsLoading] = useState(false);
@@ -13,7 +8,7 @@ export const useAuthAPI = () => {
   const login = useCallback(async (email, password) => {
     try {
       setIsLoading(true);
-      const response = await fetch(`${BACKEND_URL}/api/auth/login`, {
+      const response = await fetch(`${API_BASE_URL}/api/auth/login`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -58,7 +53,7 @@ export const useAuthAPI = () => {
   const register = useCallback(async (email, password, confirmPassword, username) => {
     try {
       setIsLoading(true);
-      const response = await fetch(`${BACKEND_URL}/api/auth/register`, {
+      const response = await fetch(`${API_BASE_URL}/api/auth/register`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -110,7 +105,7 @@ export const useAuthAPI = () => {
   const logout = useCallback(async () => {
     try {
       setIsLoading(true);
-      const response = await fetch(`${BACKEND_URL}/api/auth/logout`, {
+      const response = await fetch(`${API_BASE_URL}/api/auth/logout`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

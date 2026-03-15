@@ -1,18 +1,13 @@
 import { useState, useCallback } from "react";
 import { toast } from "react-toastify";
-
-// Prefer VITE_API_URL (for deployed backend), then VITE_BACKEND_URL, then localhost
-const BACKEND_URL =
-  import.meta.env.VITE_API_URL ||
-  import.meta.env.VITE_BACKEND_URL ||
-  "http://localhost:3000";
+import { API_BASE_URL } from "../constants/apiConfig";
 
 export const useChatAPI = () => {
   const [isLoading, setIsLoading] = useState(false);
 
   const loadChats = useCallback(async () => {
     try {
-      const response = await fetch(`${BACKEND_URL}/api/chat`, {
+      const response = await fetch(`${API_BASE_URL}/api/chat`, {
         credentials: "include",
       });
       if (response.ok) {
@@ -31,7 +26,7 @@ export const useChatAPI = () => {
   const createNewChat = useCallback(async (title, selectedLanguage) => {
     try {
       setIsLoading(true);
-      const response = await fetch(`${BACKEND_URL}/api/chat`, {
+      const response = await fetch(`${API_BASE_URL}/api/chat`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         credentials: "include",
@@ -59,7 +54,7 @@ export const useChatAPI = () => {
 
   const loadChat = useCallback(async (chatId) => {
     try {
-      const response = await fetch(`${BACKEND_URL}/api/chat/${chatId}`, {
+      const response = await fetch(`${API_BASE_URL}/api/chat/${chatId}`, {
         credentials: "include",
       });
       if (response.ok) {
@@ -79,7 +74,7 @@ export const useChatAPI = () => {
   const sendMessage = useCallback(async (chatId, message, selectedLanguage) => {
     try {
       setIsLoading(true);
-      const response = await fetch(`${BACKEND_URL}/api/chat/${chatId}/message`, {
+      const response = await fetch(`${API_BASE_URL}/api/chat/${chatId}/message`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         credentials: "include",
@@ -110,7 +105,7 @@ export const useChatAPI = () => {
 
   const deleteChat = useCallback(async (chatId) => {
     try {
-      const response = await fetch(`${BACKEND_URL}/api/chat/${chatId}`, {
+      const response = await fetch(`${API_BASE_URL}/api/chat/${chatId}`, {
         method: "DELETE",
         credentials: "include",
       });
@@ -129,7 +124,7 @@ export const useChatAPI = () => {
 
   const updateChatTitle = useCallback(async (chatId, newTitle) => {
     try {
-      const response = await fetch(`${BACKEND_URL}/api/chat/${chatId}`, {
+      const response = await fetch(`${API_BASE_URL}/api/chat/${chatId}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         credentials: "include",
@@ -148,7 +143,7 @@ export const useChatAPI = () => {
 
   const logout = useCallback(async () => {
     try {
-      const res = await fetch(`${BACKEND_URL}/api/auth/logout`, {
+      const res = await fetch(`${API_BASE_URL}/api/auth/logout`, {
         method: "POST",
         credentials: "include",
       });
