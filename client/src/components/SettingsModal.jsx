@@ -2,6 +2,7 @@ import { useState, useContext } from "react";
 import { X, User, Settings, Shield, CreditCard, Bell, Palette, Globe, Download } from "lucide-react";
 import { AppContext } from "../context/AppContext";
 import { toast } from "react-toastify";
+import { API_BASE_URL } from "../constants/apiConfig";
 
 const SettingsModal = ({ isOpen, onClose, user }) => {
   const { isDark, setIsDark } = useContext(AppContext);
@@ -29,8 +30,7 @@ const SettingsModal = ({ isOpen, onClose, user }) => {
 
   const handleLogout = async () => {
     try {
-      const backendUrl = import.meta.env.VITE_BACKEND_URL;
-      const res = await fetch(`${backendUrl}/api/auth/logout`, {
+      const res = await fetch(`${API_BASE_URL}/api/auth/logout`, {
         method: "POST",
         credentials: "include",
       });

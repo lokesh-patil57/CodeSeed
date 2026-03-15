@@ -2,12 +2,7 @@ import { useEffect, useRef, useContext } from "react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 import { AppContext } from "../context/AppContext";
-
-// Prefer VITE_API_URL (for deployed backend), then VITE_BACKEND_URL, then localhost
-const API_BASE_URL =
-  import.meta.env.VITE_API_URL ||
-  import.meta.env.VITE_BACKEND_URL ||
-  "http://localhost:3000";
+import { API_BASE_URL } from "../constants/apiConfig";
 
 export default function GoogleLogin({ isDark }) {
   const navigate = useNavigate();
