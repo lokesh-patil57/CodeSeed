@@ -340,7 +340,7 @@ npm install
 3. **Create environment variables**
 Create a `.env.local` file in the client folder:
 ```env
-VITE_BACKEND_URL=http://localhost:5000
+VITE_API_URL=http://localhost:5000
 VITE_GOOGLE_CLIENT_ID=your_google_client_id_here
 ```
 

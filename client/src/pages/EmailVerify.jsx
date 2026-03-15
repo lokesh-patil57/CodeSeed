@@ -2,6 +2,7 @@ import { useCallback, useEffect, useMemo, useState, useContext } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 import { AppContext } from "../context/AppContext";
+import { API_BASE_URL } from "../constants/apiConfig";
 
 const EmailVerify = () => {
   const location = useLocation();
@@ -11,11 +12,7 @@ const EmailVerify = () => {
   const [otp, setOtp] = useState("");
   const [isSending, setIsSending] = useState(false);
   const [isVerifying, setIsVerifying] = useState(false);
-  // Prefer VITE_API_URL (for deployed backend), then VITE_BACKEND_URL, then localhost
-  const backendUrl =
-    import.meta.env.VITE_API_URL ||
-    import.meta.env.VITE_BACKEND_URL ||
-    "http://localhost:3000";
+  const backendUrl = API_BASE_URL;
 
   useEffect(() => {
     const storedEmail =

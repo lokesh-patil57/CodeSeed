@@ -16,6 +16,7 @@
 - [About CodeSeed](#about-codeseed)
 - [Project Structure](#project-structure)
 - [Quick Start](#quick-start)
+- [Deployment (Vercel + Render)](#deployment-vercel--render)
 - [Installation](#installation)
 - [Usage](#usage)
 - [Features](#features)
@@ -83,7 +84,8 @@ CodeSeed/
 ├── server/                          ← Backend (Node.js + Express)
 │   ├── config/
 │   │   ├── db.js                   ← Database configuration
-│   │   └── nodemailer.js           ← Email service config
+│   ├── services/
+│   │   └── emailService.js         ← Brevo email service
 │   ├── controllers/
 │   │   ├── authController.js       ← Auth logic
 │   │   ├── chatController.js       ← Chat logic
@@ -144,6 +146,16 @@ npm run dev
 
 ---
 
+## ☁️ Deployment (Vercel + Render)
+
+Deploy frontend on Vercel (`client/`) and backend on Render (`server/`).
+
+- Full deployment instructions: see [`DEPLOYMENT.md`](./DEPLOYMENT.md)
+- Render blueprint file included: [`render.yaml`](./render.yaml)
+- Vercel SPA routing config included: [`client/vercel.json`](./client/vercel.json)
+
+---
+
 ## 🔧 Installation
 
 ### Prerequisites
@@ -182,8 +194,9 @@ cp .env.example .env
 # - MONGODB_URI=your_mongodb_connection_string
 # - PORT=5000
 # - JWT_SECRET=your_jwt_secret_key
-# - NODEMAILER_EMAIL=your_email
-# - NODEMAILER_PASSWORD=your_app_password
+# - BREVO_API_KEY=your_brevo_api_key
+# - BREVO_SENDER_EMAIL=verified_sender_email
+# - APP_NAME=CodeSeed
 # - GOOGLE_CLIENT_ID=your_google_client_id
 # - GOOGLE_CLIENT_SECRET=your_google_client_secret
 
@@ -229,9 +242,10 @@ NODE_ENV=development
 JWT_SECRET=your_secret_key_here
 JWT_EXPIRE=7d
 
-# Email (Nodemailer)
-NODEMAILER_EMAIL=your_email@gmail.com
-NODEMAILER_PASSWORD=your_app_password
+# Email (Brevo Transactional API)
+BREVO_API_KEY=your_brevo_api_key
+BREVO_SENDER_EMAIL=verified_sender_email
+APP_NAME=CodeSeed
 
 # Google OAuth
 GOOGLE_CLIENT_ID=your_google_client_id
@@ -395,7 +409,7 @@ npm run lint -- --fix
 - **MongoDB** - NoSQL database
 - **Mongoose** - MongoDB ODM
 - **JWT** - Authentication tokens
-- **Nodemailer** - Email service
+- **Brevo Transactional Email API** - Email service
 - **Bcryptjs** - Password hashing
 - **CORS** - Cross-origin requests
 - **Dotenv** - Environment variables
@@ -574,9 +588,9 @@ kill -9 <PID>                 # Mac/Linux
 
 #### Issue: "Email verification not working"
 **Solution:**
-1. Check Nodemailer configuration in .env
-2. Verify email service credentials
-3. Check SMTP settings
+1. Check Brevo configuration in `.env`
+2. Verify `BREVO_API_KEY` and `BREVO_SENDER_EMAIL`
+3. Verify sender email is approved in Brevo
 4. Look for error logs in server terminal
 
 ### Getting Help
