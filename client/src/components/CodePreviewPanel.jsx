@@ -176,7 +176,7 @@ const CodePreviewPanel = ({
             <select
               value={selectedVersion}
               onChange={(e) => setSelectedVersion(e.target.value)}
-              className="version-selector-dropdown"
+              className="hidden md:block version-selector-dropdown"
               style={{
                 backgroundColor: '#000000',
                 color: '#ffffff',

@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import {
   X,
+  ArrowLeft,
   Download,
   Copy,
   Maximize2,
@@ -191,7 +192,8 @@ const CodePanel = ({
           isOpen ? "translate-x-0" : "translate-x-full"
         }`}
         style={{
-          width: "60%",
+          width: "100%",
+          maxWidth: "720px",
           backgroundColor: bgMain,
           borderLeft: `1px solid ${isDark ? "rgba(255,255,255,0.1)" : "rgba(0,0,0,0.1)"}`,
         }}
@@ -209,7 +211,7 @@ const CodePanel = ({
               <select
                 value={language}
                 onChange={(e) => onLanguageChange(e.target.value)}
-                className={`px-3 py-1.5 rounded-lg border ${borderColor} ${textPrimary} bg-transparent text-sm`}
+                className={`hidden md:block px-3 py-1.5 rounded-lg border ${borderColor} ${textPrimary} bg-transparent text-sm`}
               >
                 {availableLanguages.map((lang) => (
                   <option key={lang} value={lang}>
@@ -241,13 +243,30 @@ const CodePanel = ({
           </div>
 
           <div className="flex items-center gap-2">
+            <button
+              onClick={onClose}
+              className={`hidden md:flex items-center gap-2 px-3 py-2 rounded-lg border ${borderColor} ${textSecondary} hover:bg-black/5 transition`}
+            >
+              <X size={18} />
+              Close
+            </button>
+
+            <button
+              onClick={onClose}
+              className={`flex md:hidden items-center justify-center w-10 h-10 rounded-lg border ${borderColor} ${textSecondary} hover:bg-black/5 transition`}
+              aria-label="Close code preview"
+              title="Close"
+            >
+              <X size={18} />
+            </button>
+
             <div className="relative group">
               <button
                 onClick={() => {
                   const menu = document.getElementById("export-menu");
                   if (menu) menu.classList.toggle("hidden");
                 }}
-                className={`p-2 rounded-lg border ${borderColor} ${textSecondary} hover:bg-black/5 transition`}
+                className={`hidden md:block p-2 rounded-lg border ${borderColor} ${textSecondary} hover:bg-black/5 transition`}
                 title="Export"
               >
                 <Download size={18} />
