@@ -26,7 +26,7 @@ export default function AuthBox({
 
   return (
     <div
-      className={`rounded-2xl ${wrapperBg} border p-5 w-3/4 relative shadow-xl`}
+      className={`rounded-2xl ${wrapperBg} border p-4 sm:p-5 w-full max-w-[480px] sm:w-[90%] md:w-[85%] lg:w-[480px] relative shadow-xl mx-auto`}
       style={isDark ? { backgroundColor: "#1a1a1a" } : undefined}
     >
       <div className="flex flex-col" style={{ width: "100%" }}>

@@ -150,7 +150,7 @@ export default function LoginPage() {
         >
           <div className="w-full">
             <h1
-              className={`flex text-center justify-center text-6xl font-light mb-4 ${
+              className={`flex text-center justify-center text-4xl sm:text-5xl lg:text-6xl font-light mb-4 ${
                 isDark ? "text-white" : "text-gray-900"
               }`}
             >
