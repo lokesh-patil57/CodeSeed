@@ -1,4 +1,5 @@
 # CodeSeed - AI-Powered Code Generation & Learning Platform
+### 🚀 Check out - https://codeseed-lake.vercel.app
 
 ![CodeSeed](https://img.shields.io/badge/version-1.0.0-blue.svg)
 ![License](https://img.shields.io/badge/license-MIT-green.svg)
