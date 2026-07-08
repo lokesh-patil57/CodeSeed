@@ -71,12 +71,9 @@ const Sidebar = ({
       {/* Full Sidebar - Expanded */}
       <aside
         className={`
-          hidden md:flex md:flex-col fixed md:static inset-y-0 left-0 z-30
-          h-screen overflow-hidden
-          flex-col
-          transition-all duration-300 ease-out
-          ${isOpen ? "w-72" : "w-20"}
-          border-r ${borderColor}
+          fixed inset-y-0 left-0 z-30 flex flex-col transition-all duration-300 ease-out border-r ${borderColor}
+          ${isOpen ? "block w-full sm:w-[320px] translate-x-0" : "hidden w-0 -translate-x-full"}
+          md:static md:flex md:translate-x-0 ${isOpen ? "md:w-72" : "md:w-20"}
         `}
         style={{ backgroundColor: bgPanel }}
       >

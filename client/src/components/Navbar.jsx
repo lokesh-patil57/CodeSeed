@@ -54,7 +54,7 @@ export default function NavBar({ isDark, toggleTheme, focusEmail }) {
             <div className="flex items-center space-x-2">
               <button
                 onClick={handleAboutClick}
-                className={`${btnBase} ${btnHover} ${btnText}`}
+                className={`${btnBase} ${btnHover} ${btnText} hidden sm:flex`}
                 aria-label="About"
                 title="About"
               >
